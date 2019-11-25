@@ -1,0 +1,210 @@
+
+<template>
+  <div class="content">
+    <page-heade :title="text"></page-heade>
+    <div class="box">
+      <div class="img_box">
+        <img src="@/assets/img/LOGO@2x.png" alt class="logo" />
+        <img src="@/assets/img/xunizhifu@2x.png" alt class="zilogo" />
+      </div>
+
+      <ul class="usecon">
+        <li>
+          <input type="number" placeholder="用户名" name="telphone" v-model="tel" />
+        </li>
+        <!-- <li>
+        <input type="number" placeholder="请输入验证码" name="usetext" ref="usema" />
+        <i @click="getma" v-text="ma"></i>
+        </li>-->
+        <li>
+          <input type="password" name="usepsd" v-model="usepsd" placeholder="密码" />
+        </li>
+
+        <div class="resok" @click="sub">
+          <span>登录</span>
+        </div>
+      </ul>
+
+      <div class="download">
+        <img src="@/assets/img/dibu_bohao@2x.png" alt />
+        <span>0371-6666668</span>
+      </div>
+    </div>
+  </div>
+</template>
+<script>
+//import 《组件名称》 from '《组件路径》';
+// import Request from "@/common/request"
+import pageHeade from "./../components/header";
+import { Toast } from "vant";
+export default {
+  data() {
+    return {
+      text: "骑手端",
+      tel: "",
+      // 用户密码
+      usepsd: "",
+      pid: "",
+      type: "",
+      show: false,
+      height:
+        document.documentElement.clientHeight || document.body.clientHeight,
+      type: 0   // 0   骑手   1  商家
+    };
+  },
+  //监听属性 类似于data概念
+  computed: {},
+  //监控data中的数据变化
+  watch: {},
+  //import引入的组件需要注入到对象中才能使用
+  components: {
+    pageHeade
+  },
+  //生命周期 - 创建完成（可以访问当前this实例）
+  created() {
+    this.type=this.$route.query.id;
+  },
+  //生命周期 - 挂载完成（可以访问DOM元素）
+  mounted() {
+    let num = this.height;
+    window.onresize = () => {
+      document.getElementsByTagName("html")[0].style.height = num;
+    };
+  },
+  //方法集合
+  methods: {
+    getInfo(){
+      this.type==0?localStorage.setItem("qishouInfo",):localStorage.setItem('shopInfo')
+    },
+    sub() {
+      let useyan = this.$refs.usema.value.trim();
+      if (useyan != this.usema) {
+        Toast("请输入正确的验证码!");
+      } else {
+        let json = {
+          cmd: "register",
+          phone: this.tel,
+          pid: this.pid,
+          type: this.type,
+          password: hex_md5(this.usepsd)
+        };
+        Request.postRequest(json)
+          .then(res => {
+            Toast(res.data.resultNote);
+          })
+          .catch(err => {
+            console.log(err);
+          });
+      }
+    },
+    down() {}
+  },
+  //生命周期 - 创建之前
+  beforeCreate() {},
+  //生命周期 - 挂载之前
+  beforeMount() {},
+  //生命周期 - 更新之前
+  beforeUpdate() {},
+  //生命周期 - 更新之后
+  updated() {},
+  //生命周期 - 销毁之前
+  beforeDestroy() {
+    clearInterval(this.timer);
+  },
+  //生命周期 - 销毁完成
+  destroyed() {},
+  //如果页面有keep-alive缓存功能，这个函数会触发
+  activated() {}
+};
+</script>
+<style scoped lang='less' rel='stylesheet/stylus'>
+.content {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.box {
+  width: 100%;
+  margin-top: 0.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+  position: relative;
+  .img_box {
+    display: flex;
+    flex-direction: column;
+    .logo {
+      width: 0.775rem;
+      height: 0.775rem;
+    }
+    .zilogo {
+      margin-top: 0.15rem;
+      width: 0.775rem;
+    }
+  }
+
+  .usecon {
+    padding: 0 0.2rem;
+    width: 100%;
+    li {
+      position: relative;
+      background: #fff;
+      height: 0.4rem;
+      margin: 0.15rem 0;
+      border-bottom: 1px solid #e4e0e0;
+      input {
+        flex: 1;
+        padding-left: 0.15rem;
+        font-size: 0.14rem;
+        color: #333333;
+      }
+      input::-webkit-input-placeholder {
+        color: #a0a0a0;
+        font-size: 0.14rem;
+      }
+    }
+  }
+
+  .ck {
+    font-size: 0.13rem;
+    color: #bbb;
+    display: flex;
+    div {
+      margin-right: 0.05rem;
+      width: 0.2rem;
+      height: 0.2rem;
+    }
+  }
+  .resok {
+    width: 100%;
+    font-size: 0;
+    span {
+      width: 100%;
+      height: 0.4rem;
+      margin-top: 0.5rem;
+      border-radius: 4px;
+      display: block;
+      background-color: #0081ff;
+      text-align: center;
+      line-height: 0.4rem;
+      border-radius: 22px;
+      color: #fff;
+      font-size: 0.17rem;
+    }
+  }
+  .download {
+    img {
+      width: 0.18rem;
+      height: 0.18rem;
+      vertical-align: middle;
+    }
+    span {
+      color: #0081ff;
+      margin-left: 0.1rem;
+    }
+  }
+}
+</style>
