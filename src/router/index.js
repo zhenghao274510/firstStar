@@ -5,7 +5,7 @@ Vue.use(Router)
 export default new Router({
   routes:[{
     path: '/',
-    redirect:'/qishou_index'
+    redirect:'/shop_index'
   },
     {
       path: '/resgin',

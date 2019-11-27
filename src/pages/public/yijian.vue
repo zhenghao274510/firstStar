@@ -14,10 +14,11 @@ import pageHeade from "./../components/header";
 export default {
   data() {
     return {
-      text:"意见反馈",
+      text: "意见反馈",
       content: "",
       phone: "",
-      uid: ""
+      uid: "",
+      direct: 0
     };
   },
   //监听属性 类似于data概念
@@ -29,33 +30,34 @@ export default {
     pageHeade
   },
   //生命周期 - 创建完成（可以访问当前this实例）
-  created() {},
+  created() {
+    this.direct = this.$route.query.id;
+    this.direct == 0
+      ? (this.uid = JSON.parse(localStorage.getItem("qishouInfo")).cid)
+      : (this.uid = JSON.parse(localStorage.getItem("shopInfo")).cid);
+  },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
   //方法集合
   methods: {
     sub_yj() {
-      // this.uid = this.$store.Use.uid;
-     this.uid=sessionStorage.getItem('uid');
-      // this.uid = "1";
-      if (this.content != "") {
-        let parmas = {
-          cmd: "feedBack",
-          uid: this.uid,
-          content: this.content,
-          phone: this.phone
-        };
-        this.http(parmas).then(res => {
-          if (res.data.result == 0) {
-            this.$toast("提交成功！感谢您的反馈！");
-            this.phone = "";
-            this.content = "";
-            this.$router.back(-1);
-          }
-        });
-      } else{
-        this.$toast("内容不能为空!");
-      }
+      this.content!=""?this.fink():this.$toast('内容不能为空!')
+    },
+    fink() {
+      let parmas = {
+        cmd: "feedBack",
+        uid: this.uid,
+        content: this.content
+      };
+      this.$api.post(parmas).then(res => {
+        res.result == 0
+          ? (this.$toast("提交成功！感谢您的反馈"),
+            (this.content = ""),
+            setTimeout(() => {
+              this.$router.go(-1);
+            }, 1000))
+          : this.$toast(res.resultNode);
+      });
     }
   },
   //生命周期 - 创建之前
@@ -77,11 +79,11 @@ export default {
 <style scoped lang='less' rel='stylesheet/stylus'>
 .yj_box {
   height: 100%;
-   background-color: #fff;
+  background-color: #fff;
   .yj_cont {
     background-color: #fff;
     border-bottom: 1px solid #f1eeee;
-    margin-top: .5rem;
+    margin-top: 0.5rem;
     .yj_tit {
       line-height: 0.46rem;
       font-size: 0.18rem;
@@ -119,7 +121,7 @@ export default {
     color: #fff;
     border-radius: 22px;
     font-size: 0.18rem;
-    background-color: #0081FF;
+    background-color: #0081ff;
   }
 }
 </style>

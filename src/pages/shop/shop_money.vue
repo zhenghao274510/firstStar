@@ -11,7 +11,6 @@
       </div>
 
       <van-tabs
-        :active="active"
         color="#0081FF"
         title-active-color="#0081FF"
         sticky
@@ -25,7 +24,7 @@
           <van-list
             v-model="loading"
             :finished="finished"
-            finished-text="没有更多了"
+            :finished-text="finishedTxt"
             @load="onLoad"
             :offset="10"
             :immediate-check="init"
@@ -38,17 +37,19 @@
                 <ul>
                   <li>
                     <div class="list_top">
-                      <span>4564564564564</span>
+                      <span v-if="active==0">4564564564564</span>
+                      <span v-else>提现</span>
                       <span>154564</span>
                     </div>
-                    <p>45645645645</p>
+                    <p v-if="active==0">45645645645</p>
                   </li>
                   <li>
                     <div class="list_top">
-                      <span>4564564564564</span>
+                      <span v-if="active==0">4564564564564</span>
+                      <span v-else>提现</span>
                       <span>154564</span>
                     </div>
-                    <p>45645645645</p>
+                    <p v-if="active==0">45645645645</p>
                   </li>
                 </ul>
               </li>
@@ -59,10 +60,11 @@
                 <ul>
                   <li>
                     <div class="list_top">
-                      <span>4564564564564</span>
+                      <span v-if="active==0">4564564564564</span>
+                      <span v-else>提现</span>
                       <span>154564</span>
                     </div>
-                    <p>45645645645</p>
+                    <p v-if="active==0">45645645645</p>
                   </li>
                 </ul>
               </li>
@@ -83,9 +85,13 @@ export default {
       text: "我的余额",
       tab: ["收入", "支出"],
       loading: false,
-      avtive: "0",
+      avtive: 0,
       finished: false,
-      init: false
+      init: false,
+      page: 1,
+      totalPage: 1,
+      dataList: [],
+      finishedTxt: ""
     };
   },
   //监听属性 类似于data概念
@@ -97,13 +103,72 @@ export default {
     pageHead
   },
   //生命周期 - 创建完成（可以访问当前this实例）
-  created() {},
+  created() {
+    let shopInfo = localStorage.getItem("shopInfo");
+    this.cid = JSON.parse(shopInfo).cid;
+    this.loadData(this.page, thia.active);
+  },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
   //方法集合
   methods: {
-    onLoad() {},
-    changeIng() {}
+    onLoad() {
+      this.loading = true;
+      if (this.page < this.totalPage) {
+        this.page++;
+        this.loadData(this.page, thia.active);
+      } else {
+        setTimeout(() => {
+          this.loading = false;
+          this.finished = true;
+          this.finishedTxt = "没有更多了";
+        }, 2000);
+      }
+    },
+    loadData(p, a) {
+      let parmas = {
+        cmd: "",
+        cid: this.cid,
+        type: a,
+        page: p
+      };
+      this.$api
+        .post(parmas)
+        .then(res => {
+          this.loading == true ? (this.loading = false) : (this.loading = true);
+          res.result == 0
+            ? ((this.totalPage = res.totalPage),
+              res.dataList != undefined && res.dataList.length != 0
+                ? res.dataList.forEach(item => {
+                    this.dataList.push(item);
+                  })
+                : ((this.finished = true), (this.finishedTxt = "暂无相关数据")))
+            : this.$toast("请求失败!请稍后重试!");
+          // if(res.result==0){
+          //   this.totalPage=res.totalPage;
+          //   if(res.dataList!=undefined && res.dataList.length!=0){
+          //     res.dataList.forEach(item=>{
+          //       this.dataList.push(item);
+          //     })
+          //   }else{
+          //     this.finished=true;
+          //     this.finishedTxt="暂无相关数据"
+          //   }
+          // }
+        })
+        .catch(err => {});
+    },
+    changeIng(e) {
+      this.active = e;
+      this.initData();
+    },
+    initData() {
+      this.page = 1;
+      this.totalPage = 1;
+      this.dataList = [];
+      this.finished = false;
+      this.loadData(this.page, this.active);
+    }
   },
   //生命周期 - 创建之前
   beforeCreate() {},
@@ -126,12 +191,11 @@ export default {
   width: 100%;
   .cont {
     padding: 0 0.2rem;
-     margin-top: .5rem;
+    margin-top: 0.5rem;
     .cont_top {
       width: 100%;
       height: 1.01rem;
       display: flex;
-      // justify-content: space-around;
       align-items: center;
       position: relative;
       img {
@@ -140,17 +204,14 @@ export default {
         left: 0;
       }
       .con_info {
-        // position: absolute;
-        // top: 0;
-        // left: .2rem;;
         padding-left: 0.3rem;
         z-index: 99;
         h4 {
           font-size: 0.15rem;
-          color: #CFCFCF;
+          color: #cfcfcf;
         }
         h2 {
-          margin-top: .15rem;
+          margin-top: 0.15rem;
           color: #ffe3dd;
           font-size: 0.2rem;
         }
@@ -159,17 +220,16 @@ export default {
   }
 }
 .cont_list {
-   padding: 0.2rem .02rem;
+  padding: 0.2rem 0.02rem;
   .list_swipe {
     margin-bottom: 0.2rem;
     .list_title {
       line-height: 0.35rem;
     }
     li {
-      height: 0.8rem;
       border-radius: 8px;
       box-shadow: 0 0 2px 2px rgb(238, 237, 237);
-      padding: 0.15rem;
+      padding: 0.2rem 0.15rem;
       margin-bottom: 0.1rem;
       .list_top {
         display: flex;

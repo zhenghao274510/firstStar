@@ -27,6 +27,7 @@
 <script>
 //import 《组件名称》 from '《组件路径》';
 import pageHeade from "./../components/header";
+import wxPay from "@/assets/js/pay.js"
 export default {
   data() {
     return {
@@ -34,6 +35,8 @@ export default {
       text: "扫码支付",
       money:"",
       msg:"",
+      shopid:'',
+      cid:'',
       height:
         document.documentElement.clientHeight || document.body.clientHeight
     };
@@ -60,7 +63,18 @@ export default {
   //方法集合
   methods: {
     payMoney(){
-      
+      let parmas={
+            cmd:'',
+            shopid:this.shopId,
+            money:this.money,
+            msg:this.msg,
+            cid:this.cid
+      }
+      this.$api.post(parmas).then(res=>{
+             if(res.result==0){
+               wxPay.pay(res)
+             }
+      })
     }
   },
   //生命周期 - 创建之前

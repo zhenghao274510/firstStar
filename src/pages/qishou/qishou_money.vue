@@ -11,7 +11,6 @@
       </div>
 
       <van-tabs
-        v-model="active"
         color="#0081FF"
         title-active-color="#0081FF"
         sticky
@@ -38,17 +37,19 @@
                 <ul>
                   <li>
                     <div class="list_top">
-                      <span>4564564564564</span>
+                      <span v-if="active==0">4564564564564</span>
+                      <span v-else>账户充值</span>
                       <span>154564</span>
                     </div>
-                    <p>45645645645</p>
+                    <p v-if="active==0">45645645645</p>
                   </li>
                   <li>
                     <div class="list_top">
-                      <span>4564564564564</span>
+                      <span v-if="active==0">4564564564564</span>
+                      <span v-else>账户充值</span>
                       <span>154564</span>
                     </div>
-                    <p>45645645645</p>
+                    <p v-if="active==0">45645645645</p>
                   </li>
                 </ul>
               </li>
@@ -59,10 +60,11 @@
                 <ul>
                   <li>
                     <div class="list_top">
-                      <span>4564564564564</span>
+                      <span v-if="active==0">4564564564564</span>
+                      <span v-else>账户充值</span>
                       <span>154564</span>
                     </div>
-                    <p>45645645645</p>
+                    <p v-if="active==0">45645645645</p>
                   </li>
                 </ul>
               </li>
@@ -83,9 +85,15 @@ export default {
       text: "我的余额",
       tab: ["消费记录", "充值记录"],
       loading: false,
-      avtive: 0,
+      active: 0,
       finished: false,
-      init: false
+      init: false,
+      cid: "",
+      totalPage: 1,
+      page: 1,
+      dataList: [],
+      money: "",
+      finishedTxt: ""
     };
   },
   //监听属性 类似于data概念
@@ -97,14 +105,78 @@ export default {
     pageHead
   },
   //生命周期 - 创建完成（可以访问当前this实例）
-  created() {},
+  created() {
+    let qishouInfo = localStorage.getItem("qishouInfo");
+    this.cid = JSON.parse(qishouInfo).cid;
+    this.loadData(this.page, this.active);
+  },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
   //方法集合
   methods: {
-    onLoad() {},
+    loadData(p, a) {
+      let parmas = {
+        cmd: "",
+        cid: this.cid,
+        page: p,
+        type: a
+      };
+      this.$api
+        .post(parmas)
+        .then(res => {
+          this.loading == true ? (this.loading = false) : (this.loading = true);
+          // if (res.result == 0) {
+          res.result == 0
+            ? ((this.totalPage = res.totalPage),
+              res.dataList != undefined && res.dataList.length != 0
+                ? res.dataList.forEach(item => {
+                    this.dataList.push(item);
+                  })
+                : ((this.finished = true), (this.finishedTxt = "暂无相关数据")))
+            : this.$toast("请求失败!请稍后重试!");
+          // if (res.dataList != undefined || res.dataList.length != 0) {
+          //   res.dataList.forEach(item => {
+          //     this.dataList.push(item);
+          //   });
+          // }else{
+          //   this.finished=true;
+          //   this.finishedTxt="暂无相关数据"
+          // }
+          // }
+        })
+        .catch(err => {});
+    },
     changeIng(e) {
-      //  console.log(e)
+      console.log(e);
+      this.active = e;
+      this.initData();
+    },
+    onLoad() {
+      this.loading = true;
+      this.page < this.totalPage
+        ? (this.page++, this.loadData(this.page, this.active))
+        : setTimeout(() => {
+            this.loading = false;
+            this.finished = true;
+            this.finishedTxt = "没有更多了";
+          }, 1000);
+      // if (this.page < this.totalPage) {
+      //   this.page++;
+      //   this.loadData(this.page, this.active);
+      // } else {
+      //   setTimeout(() => {
+      //     this.loading = false;
+      //     this.finished = true;
+      //     this.finishedTxt = "没有更多了";
+      //   }, 1000);
+      // }
+    },
+    initData() {
+      this.page = 1;
+      this.totalPage = 1;
+      this.finished=false;
+      this.dataList = [];
+      this.loadData();
     }
   },
   //生命周期 - 创建之前
@@ -129,12 +201,11 @@ export default {
   background: #fff;
   .cont {
     padding: 0 0.2rem;
-     margin-top: .5rem;
+    margin-top: 0.5rem;
     .cont_top {
       width: 100%;
       height: 1.01rem;
       display: flex;
-      // justify-content: space-around;
       align-items: center;
       position: relative;
       img {
@@ -143,17 +214,14 @@ export default {
         left: 0;
       }
       .con_info {
-        // position: absolute;
-        // top: 0;
-        // left: .2rem;;
         padding-left: 0.3rem;
         z-index: 99;
         h4 {
           font-size: 0.15rem;
-          color: #CFCFCF;
+          color: #cfcfcf;
         }
         h2 {
-          margin-top: .15rem;
+          margin-top: 0.15rem;
           color: #ffe3dd;
           font-size: 0.2rem;
         }
@@ -162,17 +230,17 @@ export default {
   }
 }
 .cont_list {
-  padding: 0.2rem .02rem;
+  padding: 0.2rem 0.02rem;
   .list_swipe {
     margin-bottom: 0.2rem;
     .list_title {
       line-height: 0.35rem;
     }
     li {
-      height: 0.8rem;
+      // height: 0.8rem;
       border-radius: 8px;
       box-shadow: 0 0 2px 2px rgb(238, 237, 237);
-      padding: 0.15rem;
+      padding: 0.2rem 0.15rem;
       margin-bottom: 0.1rem;
       .list_top {
         display: flex;

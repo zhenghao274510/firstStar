@@ -2,7 +2,7 @@
   <div class="content">
     <div class="box">
       <h4 class="index_title">首页</h4>
-      <div class="useInfo" @click="change">
+      <div class="useInfo" @click.stop="change">
         <div class="usePic">
           <img src="@/assets/img/morentouxiang@2x.png" alt v-if="icon==''" />
           <img :src="icon" alt v-else />
@@ -15,19 +15,19 @@
       </div>
       <div class="top-bar">
         <van-tabbar :fixed="false" active-color="#666">
-          <van-tabbar-item @click="gotoall(1)">
+          <van-tabbar-item @click.stop="gotoall(1)">
             <span>我的余额</span>
             <img slot="icon" src="@/assets/img/wodeyue@2x.png" />
           </van-tabbar-item>
-          <van-tabbar-item to @click="gotoall(2)">
+          <van-tabbar-item to @click.stop="gotoall(2)">
             <span>商户列表</span>
             <img slot="icon" src="@/assets/img/shangjia_shangjialiebiao@2x.png" />
           </van-tabbar-item>
-          <van-tabbar-item to @click="gotoall(3)">
+          <van-tabbar-item to @click.stop="gotoall(3)">
             <span>意见反馈</span>
             <img slot="icon" src="@/assets/img/shangjia_yijianfankui@2x.png" />
           </van-tabbar-item>
-          <van-tabbar-item to @click="gotoall(4)">
+          <van-tabbar-item to @click.stop="gotoall(4)">
             <span>联系客服</span>
             <img slot="icon" src="@/assets/img/qishou_yue@2x.png" />
           </van-tabbar-item>
@@ -35,25 +35,35 @@
       </div>
     </div>
     <div class="shao_cont">
-      <div @click="sys_click">
+      <div @click.stop="sys_click">
         <img src="@/assets/img/shangjia_saoyisao@3x.png" alt />
         <p>扫一扫支付</p>
       </div>
     </div>
-    <van-popup :show="show" @click.stop="show=false"> <div class="puop_con">
-      </div> </van-popup>
+    <div v-show="show" @click.stop="show=false" class="puop_swipe">
+      <div class="puop_con">
+        <div class="puop_top">
+          <p class="one">联系客服</p>
+          <p class="two"> {{kefuPhone}}</p>
+        </div>
+        <div class="puop_btn">
+          <span class="puop_can" @click.stop="show=false">取消</span>
+          <a :href="'tel://'+kefuPhone" class="puop_confirm">一键拨打</a>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 //import 《组件名称》 from '《组件路径》';
-import { Dialog } from "vant";
 export default {
   data() {
     return {
       icon: "",
       show: false,
-      kefuPhone: ""
+      kefuPhone: "",
+      cid:''
     };
   },
   //监听属性 类似于data概念
@@ -63,11 +73,24 @@ export default {
   //import引入的组件需要注入到对象中才能使用
   components: {},
   //生命周期 - 创建完成（可以访问当前this实例）
-  created() {},
+  created() {
+    this.cid=JSON.parse(localStorage.getItem("qishouInfo")).cid;
+      // this.loadData()
+  },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
   //方法集合
   methods: {
+    loadData(){
+      let parmas={
+
+      }
+      this.$api.post(parmas).then(res=>{
+          if(res.result==0){
+
+          }
+      }).catch(err=>{})
+    },
     gotoall(num) {
       switch (num) {
         case 1:
@@ -77,46 +100,22 @@ export default {
           this.$router.push("/shoplist");
           break;
         case 3:
-          this.$router.push("/yijian");
+         this.$router.push({path:"/yijian",query:{id:0}});
           break;
         case 4:
-          this.callTell();
-          //  this.$router.push("/shoplist");
+          this.show = true;
           break;
       }
     },
     sys_click() {
-      this.url = location.href.split("#")[0];
-      this.post(this.url).then(res => {
-        this.$scode(res)
-        // let that = this;
+      let url = location.href.split("#")[0];
+      this.$api.post(url).then(res => {
+         if(res.result==0){
+           this.$scode(res);
+         }
       });
     },
-    callTell() {
-      let phone = this.kefuPhone;
-      phone = "18703858281";
-      Dialog.confirm({
-        title: "联系客服",
-        message: phone,
-        confirmButtonText: "一键拨号",
-        confirmButtonBackgroundColor: "#0081FF",
-        cancelButtonText: "取消",
-        cancelButtonColor: "#0081FF"
-      })
-        .then(() => {
-          // wx.makePhoneCall({
-          //   phoneNumber: phone
-          // });
-           let a=document.createElement('a');
-           a.href="tell://"+phone;
-           a.click();
-        })
-        .catch(() => {
-          console.log("取消");
-        });
-    },
     change() {
-      this.$router.push("/person");
       this.$router.push({
         path: "/person",
         query: {
@@ -124,6 +123,7 @@ export default {
         }
       });
     }
+   
   },
   //生命周期 - 创建之前
   beforeCreate() {},
@@ -144,13 +144,75 @@ export default {
 <style scoped lang="less">
 .van-tabbar {
   height: 1rem;
+  font-size: 0.14rem;
 }
 .van-tabbar-item__icon img {
   width: 0.24rem;
   height: 0.27rem;
+  margin-bottom: 0.15rem;
 }
 .van-hairline--top-bottom::after {
   border: none;
+}
+.puop_swipe {
+  width: 100%;
+  height: 100%;
+  position: fixed;
+  top: 0;
+  left: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 999;
+}
+.puop_con {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: #fff;
+  border-radius: 5px;
+  width: 3rem;
+  height: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  z-index: 99;
+  .puop_top {
+    p {
+      line-height: 0.35rem;
+      text-align: center;
+    }
+    .one{
+      font-weight: bold;
+      color: #333333;
+    }
+    .two{
+      color: #666;
+    }
+  }
+  .puop_btn {
+    display: flex;
+    justify-content: space-around;
+    .puop_can {
+      width: 1rem;
+      height: 0.3rem;
+      line-height: 0.3rem;
+      display: block;
+      border-radius: 15px;
+      text-align: center;
+      border: 1px solid #ccc;
+      color: #333333;
+    }
+    .puop_confirm {
+      width: 1rem;
+      height: 0.3rem;
+      line-height: 0.3rem;
+      display: block;
+      border-radius: 15px;
+      text-align: center;
+      background: #0081ff;
+      color: #fff;
+    }
+  }
 }
 .content {
   width: 100%;

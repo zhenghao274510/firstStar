@@ -4,10 +4,6 @@ import {
 } from 'vant';
 const http={
   post(data = {}, method = 'post') {
-    Toast.loading({
-      mask: false,
-      message: '加载中...'
-    });
     return new Promise((resolve, reject) => {
       axios({
           url: encodeURI("https://m.anxihtx.com/wineshop/api/service?json=" + JSON.stringify(data)),
@@ -17,14 +13,12 @@ const http={
           }
         })
         .then(res => {
-          Toast.clear();
           reject(res.data)
         })
         .catch(res => {
           //失败
           // reject(res)
-          Toast.clear();
-          Toast('请求超时！')
+          Toast('请求超时!请稍后重试!')
         })
     })
   },
@@ -48,7 +42,7 @@ const http={
         })
         .catch(res => {
           Toast.clear();
-          Toast('请求超时！')
+          Toast('请求超时!请稍后重试!')
 
         })
     })
@@ -65,16 +59,7 @@ const http={
         .then(res => {
           //成功
           Toast.clear();
-          if (res.data.result == '0') {
-            resolve(res)
-          } else {
-            if (res.data.resultNote == '扫描失败，二维码数据有误') {
-              resolve(res)
-            } else {
-              Toast(res.data.resultNote);
-            }
-          }
-
+          reject(res.data)
         })
         .catch(res => {
           //失败
@@ -84,7 +69,7 @@ const http={
         })
     })
   },
-  upfile: (data, method = 'post') => {
+  upfile(data, method = 'post'){
     Toast.loading({
       message: '上传中...',
       mask:false
@@ -94,18 +79,18 @@ const http={
           url: encodeURI('https://m.anxihtx.com/wineshop/api/auth?url=' + data),
           method: method,
           headers: {
-            "Content-Type": "application/json;charset=UTF-8"
+            "Content-Type": "multipart/form-data"
           }
         })
         .then(res => {
           //成功
           Toast.clear();
-          resolve(res.data)
+          Toast('上传成功!')
         })
         .catch(res => {
           //失败
           Toast.clear();
-          Toast("请求超时!")
+          Toast("上传失败!")
         })
     })
   },

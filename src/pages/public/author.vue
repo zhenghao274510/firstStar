@@ -8,7 +8,6 @@
 export default {
   data() {
     return {
-      uid: ""
     };
   },
   //监听属性 类似于data概念
@@ -52,11 +51,10 @@ export default {
           }
         });
       }
-    } else if (theRequest.type == 2) {
-      // type=2 菜单
-      // this.$store.commit('onback',false);
-      // this.$router.replace("/audio");
     }
+    //  else if (theRequest.type == 2) {
+    //   // type=2 菜单
+    // }
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},

@@ -19,7 +19,6 @@
 <script>
 //import 《组件名称》 from '《组件路径》';
 import pageHeade from "./../components/header";
-import { Dialog } from "vant";
 export default {
   data() {
     return {
@@ -27,12 +26,10 @@ export default {
       oldpwd: "",
       newpwd: "",
       repeatpwd: "",
-      cardid: "",
       pwd: "",
       type: "",
-      uid: "",
-      type:'',
-      num: 0 // 修改次数
+      cid: "",
+      height:document.documentElement.clientHeight||document.body.clientHeight
     };
   },
   //监听属性 类似于data概念
@@ -48,53 +45,39 @@ export default {
       this.type=this.$route.query.id;
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
-  mounted() {},
+  mounted() {
+    // let num=this.height;
+    // window.onresize=()=>{
+    //   document.getElementsByTagName('html')[0].style.height=num;
+    // }
+  },
   //方法集合
   methods: {
     SubChange() {
-     
-      if (this.num>3) {
-          Dialog.alert({
-            message: "连续输错5次请联系客服!"
-          })
-            .then(() => {
-              this.$router.replace({
-                path: "/service",
-              });
-            })
-            .catch(() => {
-              // on cancel
-            });
-        return false;
-      } else {
-        this.oldpwd=document.getElementById('input').value.trim();
         if (this.oldpwd == this.newpwd) {
           this.$toast("两次密码不能一致!");
         } else if (this.newpwd != this.repeatpwd) {
           this.$toast("新密码输入不一样!");
         } else if (this.oldpwd != this.pwd) {
-          this.num += 1;
           this.$toast("原密码输入不正确!");
         } else {
           let parmas = {
             cmd: "updateCardPwd",
             type: this.type,
-            cardid: this.cardid,
+            cid:this.cid,
             oldpwd: this.oldpwd,
             newpwd: this.newpwd,
-            uid: this.uid
           };
-          this.http(parmas).then(res => {
-             
-            if (res.data.result == 0) {
-              this.$toast(res.data.resultNote);
+          this.$api.post(parmas).then(res => {
+            this.$toast(res.resultNote);
+            if (res.result == 0) {
               setTimeout(() => {
                 this.$router.back(-1);
               });
             }
           });
         }
-      }
+      
     }
   },
   //生命周期 - 创建之前
@@ -106,7 +89,9 @@ export default {
   //生命周期 - 更新之后
   updated() {},
   //生命周期 - 销毁之前
-  beforeDestroy() {},
+  beforeDestroy() {
+
+  },
   //生命周期 - 销毁完成
   destroyed() {},
   //如果页面有keep-alive缓存功能，这个函数会触发
@@ -116,8 +101,6 @@ export default {
 <style scoped lang="less">
 .changpsw {
   margin-top: 0.5rem;
-  height: 100%;
-  background: #fff;
   ul {
     padding: 0.2rem;
     li {

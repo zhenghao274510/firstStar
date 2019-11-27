@@ -11,12 +11,17 @@ import setFont from "@/assets/setFont/setFont.js";
 export default {
   data() {
     return {
-      transitionName:''
+      transitionName: "",
+      height:document.body.clientHeight||document.documentElement.clientHeight
     };
   },
   components: {},
   mounted() {
-    window.onload = window.onresize = setFont.setrem();
+       let num=this.height;
+    window.onload =window.onresize=()=>{
+      document.getElementById('app').style.height=num;
+      setFont.setrem()
+    }
   },
   watch: {
     $route(to, from) {
@@ -39,5 +44,6 @@ export default {
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
+  background: #fff;
 }
 </style>

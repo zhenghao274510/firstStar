@@ -8,7 +8,7 @@
     <van-list
       v-model="loading"
       :finished="finished"
-      finished-text="没有更多了"
+      finished-text="finishedTxt"
       @load="onLoad"
       :offset="10"
       :immediate-check="init"
@@ -39,7 +39,10 @@ export default {
       value: "",
       loading:false,
       finished:false,
-      init:false
+      init:false,
+      page:1,
+      totalPage:1,
+      finishedTxt:'没有更多了'
     };
   },
   //监听属性 类似于data概念
@@ -51,14 +54,58 @@ export default {
     pageHeade
   },
   //生命周期 - 创建完成（可以访问当前this实例）
-  created() {},
+  created() {
+    // this.loadData();
+  },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
   //方法集合
   methods: {
-    onSearch() {},
+      loadData() {
+      let parmas = {
+        cmd:'',
+        page:this.page
+      };
+      this.$api
+        .post(parmas)
+        .then(res => {
+          this.totalPage=res.totalPage;
+          if (res.result == 0) {
+            this.loading==true?this.loading=false:this.loading=true;
+            if(res.dataList!=undefined && res.dataList.length!=0){
+              res.dataList.forEach(item=>{
+                this.dataList.push(item);
+              })
+            }else{
+              this.finished=true;
+              this.finishedTxt="暂无相关数据"
+            }
+          }
+        })
+        .catch(err => {});
+    },
+    onSearch() {
+        let parmas = {};
+      this.$api
+        .post(parmas)
+        .then(res => {
+          if (res.result == 0) {
+          }
+        })
+        .catch(err => {});
+    },
     onLoad(){
-
+       this.loading=true;
+       if(this.page<this.totalPage){
+           this.page++;
+           this.loadData()
+       }else{
+         setTimeout(()=>{
+           this.loading=false;
+           this.finished=true;
+           this.finishedTxt="没有更多了"
+         },1500)
+       }
     }
   },
   //生命周期 - 创建之前

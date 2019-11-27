@@ -6,47 +6,31 @@
         <li style="margin-bottom:10px:height:100px;border:none;">
           <span>修改头像</span>
           <div class="modify_right">
-            <van-uploader :after-read="onRead">
+            <!-- <van-uploader :after-read="onRead"> -->
               <img :src="this.headImage" alt style="border-radius: 50%;" v-if="this.headImage!=''" />
               <img src="@/assets/img/morentouxiang@2x.png" alt v-else />
-            </van-uploader>
-            <img
-              src="@/assets/img/xiayiye2@2x.png"
-              alt
-              class="right"
-            />
+            <!-- </van-uploader> -->
+            <img src="@/assets/img/xiayiye2@2x.png" alt class="right" />
           </div>
         </li>
         <li style="margin-top:20px;">
           <span>昵称</span>
           <div class="modify_right">
-            <input type="text" placeholder="请输入昵称" v-model="username" @blur="bao" />
-            <img
-              src="@/assets/img/xiayiye2@2x.png"
-              alt
-              class="right"
-            />
+            <input type="text" placeholder="请输入昵称" v-model="username" disabled />
+            <img src="@/assets/img/xiayiye2@2x.png" alt class="right" />
           </div>
         </li>
-        <li @click="goModify">
+        <li>
           <span>账号</span>
           <div class="modify_right">
             <span>{{this.mobile}}</span>
-            <img
-              src="@/assets/img/xiayiye2@2x.png"
-              alt
-              class="right"
-            />
+            <img src="@/assets/img/xiayiye2@2x.png" alt class="right" />
           </div>
         </li>
-           <li @click="changePwd">
+        <li @click="changePwd">
           <span>修改密码</span>
           <div class="modify_right">
-            <img
-              src="@/assets/img/xiayiye2@2x.png"
-              alt
-              class="right"
-            />
+            <img src="@/assets/img/xiayiye2@2x.png" alt class="right" />
           </div>
         </li>
       </ul>
@@ -62,89 +46,81 @@ import { Toast } from "vant";
 export default {
   data() {
     return {
-      text:"个人资料",
+      text: "个人资料",
       imgs: "",
       username: "", //昵称
       mobile: "", //手机号
       headImage: "", //头像
       url: "",
-      type:''
+      type: ""
     };
   },
   components: {
     pageHeade
   },
   created() {
-    this.type=this.$route.query.id;
+    this.type = this.$route.query.id;
   },
   mounted() {},
   methods: {
-    back() {
-      this.$router.push("/person");
+    // onRead(file) {
+    //   if (this.imgs.length >= 1) {
+    //     Toast("最多上传1张图片");
+    //   } else {
+    //     this.headImage = file.content;
+    //   }
+    //   var formdata = new FormData();
+    //   formdata.append("file", file.file);
+    //   this.$api
+    //     .upfile(formdata)
+    //     .then(res => {
+    //       // console.log(res.data)
+    //       if (res.result == 0) {
+    //         this.url = res.url;
+    //         console.log(res.url);
+    //         // this.bao();
+    //       }
+    //     })
+    //     .catch(res => {
+    //       console.log(res);
+    //     });
+    // },
+    // bao() {
+    //   let parmas = {
+    //     cmd: "",
+    //     cid: this.cid,
+    //     headImage: this.url,
+    //     nickName: this.username
+    //   };
+    //   this.$api
+    //     .post(parmas)
+    //     .then(res => {
+    //       console.log(res);
+    //     })
+    //     .catch(res => {
+    //       Toast("请求超时!");
+    //     });
+    // },
+    loginOut() {
+      document.addEventListener(
+        "WeixinJSBridgeReady",
+        function() {
+          WeixinJSBridge.call("closeWindow");
+        },
+        false
+      );
+      WeixinJSBridge.call("closeWindow");
     },
-    onRead(file) {
-      if (this.imgs.length >= 1) {
-        Toast("最多上传1张图片");
-      } else {
-        this.headImage = file.content;
-      }
-      var formdata = new FormData();
-      formdata.append("file", file.file);
-      Request.postFile(formdata)
-        .then(res => {
-          // console.log(res.data)
-          if (res.data.result == 0) {
-            this.url = res.data.url;
-            console.log(res.data.url);
-            this.bao();
-          }
-        })
-        .catch(res => {
-          console.log(res);
-        });
-    },
-    goModify() {
-      // this.$router.push("/modify");
-    },
-    gouserInfo() {
-      this.useryin = true;
-      let goCarlist = {
-        cmd: "",
-        cid: this.cid
-      };
-      Request.postRequest(goCarlist)
-        .then(res => {
-          console.log(res.data);
-        })
-        .catch(res => {});
-    },
-    bao() {
-      let goCarlist = {
-        cmd: "",
-        cid: this.cid,
-        headImage: this.url,
-        nickName: this.username
-      };
-      Request.postRequest(goCarlist)
-        .then(res => {
-          console.log(res.data);
-        })
-        .catch(res => {
-          Toast("获取失败");
-        });
-    },
-    loginOut() {},
-    changePwd(){
-      let direct=this.type;
-      this.$router.push('/changepsw')
+    changePwd() {
       this.$router.push({
-        path:'/changepsw',
-        query:{
-          id:direct
+        path: "/changepsw",
+        query: {
+          id: this.type
         }
-      })
+      });
     }
   }
+ 
 };
 </script>
 
@@ -152,7 +128,7 @@ export default {
 .contain {
   width: 100%;
   height: 100%;
-  background: #FAFAFA;
+  background: #fafafa;
   display: flex;
   flex-direction: column;
   .box {
@@ -164,21 +140,21 @@ export default {
       width: 100%;
       display: flex;
       flex-direction: column;
-      background: #FAFAFA;
+      background: #fafafa;
 
       li {
         width: 100%;
-        height: .5rem;
+        height: 0.5rem;
         display: flex;
         justify-content: space-between;
         align-items: center;
         font-size: 0.14rem;
         color: #333;
-         padding: .2rem;
+        padding: 0.2rem;
         border-bottom: 1px solid #eee;
         background: #ffffff;
-        &:first-child{
-          height:1rem;
+        &:first-child {
+          height: 100px;
         }
         .modify_right {
           display: flex;
@@ -196,6 +172,7 @@ export default {
 
           input {
             text-align: right;
+            background: #fff;
           }
         }
       }

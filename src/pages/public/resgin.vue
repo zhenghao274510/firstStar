@@ -10,25 +10,25 @@
 
       <ul class="usecon">
         <li>
-          <input type="number" placeholder="用户名" name="telphone" v-model="tel" />
+          <input type="number" placeholder="用户名" name="telphone" v-model="tel" disabled />
         </li>
         <!-- <li>
         <input type="number" placeholder="请输入验证码" name="usetext" ref="usema" />
         <i @click="getma" v-text="ma"></i>
         </li>-->
         <li>
-          <input type="password" name="usepsd" v-model="usepsd" placeholder="密码" />
+          <input type="password" name="usepsd" v-model="usepsd" placeholder="密码" disabled />
         </li>
 
         <div class="resok" @click="sub">
           <span>登录</span>
         </div>
       </ul>
-
-      <div class="download">
+       <div style="margin-top:.15rem;">用户名和密码请联系客服索取</div>
+      <a class="download" :href="'tell://'+kefuPhone">
         <img src="@/assets/img/dibu_bohao@2x.png" alt />
         <span>0371-6666668</span>
-      </div>
+      </a>
     </div>
   </div>
 </template>
@@ -47,9 +47,10 @@ export default {
       pid: "",
       type: "",
       show: false,
+      kefuPhone:'',
       height:
         document.documentElement.clientHeight || document.body.clientHeight,
-      type: 0   // 0   骑手   1  商家
+      type: 0 // 0   骑手   1  商家
     };
   },
   //监听属性 类似于data概念
@@ -62,7 +63,12 @@ export default {
   },
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
-    this.type=this.$route.query.id;
+    this.type = this.$route.query.id;
+    if (this.type == 0) {
+      this.text = "骑手端";
+    } else {
+      this.text = "商家端";
+    }
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {
@@ -73,31 +79,42 @@ export default {
   },
   //方法集合
   methods: {
-    getInfo(){
-      this.type==0?localStorage.setItem("qishouInfo",):localStorage.setItem('shopInfo')
-    },
     sub() {
-      let useyan = this.$refs.usema.value.trim();
-      if (useyan != this.usema) {
-        Toast("请输入正确的验证码!");
+      if (this.usepsd == "") {
+        Toast("请输入密码!");
       } else {
-        let json = {
+        let parmas = {
           cmd: "register",
           phone: this.tel,
           pid: this.pid,
-          type: this.type,
-          password: hex_md5(this.usepsd)
+          type: this.type
+          // password: hex_md5(this.usepsd)
         };
-        Request.postRequest(json)
+        Request.postRequest(parmas)
           .then(res => {
-            Toast(res.data.resultNote);
+            res.result == 0 ? this.success() : Toast(res.resultNode);
           })
           .catch(err => {
             console.log(err);
           });
       }
     },
-    down() {}
+    success() {
+      Toast("登录成功!");
+      this.type==0?this.qishouIndex():this.shopIndex();
+    },
+    shopIndex() {
+      localStorage.setItem("shopInfo");
+      setTimeout(() => {
+        this.$router.replace("/shop_index");
+      }, 2000);
+    },
+    qishouIndex() {
+      localStorage.setItem("qishouInfo");
+      setTimeout(() => {
+        this.$router.replace("/qishou_index");
+      }, 2000);
+    }
   },
   //生命周期 - 创建之前
   beforeCreate() {},
@@ -108,9 +125,7 @@ export default {
   //生命周期 - 更新之后
   updated() {},
   //生命周期 - 销毁之前
-  beforeDestroy() {
-    clearInterval(this.timer);
-  },
+  beforeDestroy() {},
   //生命周期 - 销毁完成
   destroyed() {},
   //如果页面有keep-alive缓存功能，这个函数会触发
@@ -124,16 +139,18 @@ export default {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
+  background:#fff;
 }
 .box {
   width: 100%;
-  margin-top: 0.5rem;
+  padding: 0.5rem 0;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
   position: relative;
   .img_box {
+    margin: .5rem 0;
     display: flex;
     flex-direction: column;
     .logo {
@@ -160,6 +177,7 @@ export default {
         padding-left: 0.15rem;
         font-size: 0.14rem;
         color: #333333;
+        background: #fff;
       }
       input::-webkit-input-placeholder {
         color: #a0a0a0;
@@ -196,6 +214,7 @@ export default {
     }
   }
   .download {
+    margin-top: .3rem;
     img {
       width: 0.18rem;
       height: 0.18rem;
