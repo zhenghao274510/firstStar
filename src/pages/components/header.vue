@@ -19,7 +19,6 @@ export default {
   computed: {},
   //监控data中的数据变化
   watch: {
-  
   },
   //import引入的组件需要注入到对象中才能使用
   components: {},

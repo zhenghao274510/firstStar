@@ -7,8 +7,8 @@
           <span>修改头像</span>
           <div class="modify_right">
             <!-- <van-uploader :after-read="onRead"> -->
-              <img :src="this.headImage" alt style="border-radius: 50%;" v-if="this.headImage!=''" />
-              <img src="@/assets/img/morentouxiang@2x.png" alt v-else />
+              <img :src="icon" alt style="border-radius: 50%;"/>
+              <!-- <img src="@/assets/img/morentouxiang@2x.png" alt v-else /> -->
             <!-- </van-uploader> -->
             <img src="@/assets/img/xiayiye2@2x.png" alt class="right" />
           </div>
@@ -16,14 +16,14 @@
         <li style="margin-top:20px;">
           <span>昵称</span>
           <div class="modify_right">
-            <input type="text" placeholder="请输入昵称" v-model="username" disabled />
+            <input type="text" placeholder="请输入昵称" v-model="nickname" @blur="change" />
             <img src="@/assets/img/xiayiye2@2x.png" alt class="right" />
           </div>
         </li>
         <li>
           <span>账号</span>
           <div class="modify_right">
-            <span>{{this.mobile}}</span>
+            <span>{{account| Admin}}</span>
             <img src="@/assets/img/xiayiye2@2x.png" alt class="right" />
           </div>
         </li>
@@ -48,11 +48,12 @@ export default {
     return {
       text: "个人资料",
       imgs: "",
-      username: "", //昵称
-      mobile: "", //手机号
-      headImage: "", //头像
       url: "",
-      type: ""
+      type: "",
+      uid:'',
+      nickname:'',
+      icon:'',
+      account:''
     };
   },
   components: {
@@ -60,47 +61,58 @@ export default {
   },
   created() {
     this.type = this.$route.query.id;
+    this.uid=JSON.parse(localStorage.getItem('use')).cid;
   },
   mounted() {},
   methods: {
-    // onRead(file) {
-    //   if (this.imgs.length >= 1) {
-    //     Toast("最多上传1张图片");
-    //   } else {
-    //     this.headImage = file.content;
-    //   }
-    //   var formdata = new FormData();
-    //   formdata.append("file", file.file);
-    //   this.$api
-    //     .upfile(formdata)
-    //     .then(res => {
-    //       // console.log(res.data)
-    //       if (res.result == 0) {
-    //         this.url = res.url;
-    //         console.log(res.url);
-    //         // this.bao();
-    //       }
-    //     })
-    //     .catch(res => {
-    //       console.log(res);
-    //     });
-    // },
-    // bao() {
-    //   let parmas = {
-    //     cmd: "",
-    //     cid: this.cid,
-    //     headImage: this.url,
-    //     nickName: this.username
-    //   };
-    //   this.$api
-    //     .post(parmas)
-    //     .then(res => {
-    //       console.log(res);
-    //     })
-    //     .catch(res => {
-    //       Toast("请求超时!");
-    //     });
-    // },
+    getuser(){
+       this.$api.post({uid:this.uid},'userInfo').then(res=>{
+          if(res.result==0){
+               this.nickname=res.nickname;
+               this.icon=res.icon;
+               this.account=res.account;
+          }
+       })
+    },
+    onRead(file) {
+      if (this.imgs.length >= 1) {
+        Toast("最多上传1张图片");
+      } else {
+        this.headImage = file.content;
+      }
+      var formdata = new FormData();
+      formdata.append("file", file.file);
+      this.$api
+        .upfile(formdata)
+        .then(res => {
+          // console.log(res)
+          if (res.result == 0) {
+            this.url = res.url;
+            console.log(res.url);
+          }
+        })
+        .catch(res => {
+          console.log(res);
+        });
+    },
+    save() {
+      let parmas = {
+        uid: this.cid,
+        icon: this.url,
+      };
+      this.$api
+        .post(parmas,'updateIcon')
+        .then(res => {
+          console.log(res);
+          if(res.result==0){
+            Toast('上传成功!')
+             this.getuser();
+          }
+        })
+        .catch(res => {
+          Toast("请求超时!");
+        });
+    },
     loginOut() {
       document.addEventListener(
         "WeixinJSBridgeReady",
@@ -119,6 +131,23 @@ export default {
         }
       });
     }
+  },
+  change(){
+     let parmas = {
+        uid: this.cid,
+        nickname: this.nickname,
+      };
+      this.$api
+        .post(parmas,'updateNickname')
+        .then(res => {
+          console.log(res);
+          if(res.result==0){
+            Toast('修改成功!')
+          }
+        })
+        .catch(res => {
+          Toast("请求超时!");
+        });
   }
  
 };

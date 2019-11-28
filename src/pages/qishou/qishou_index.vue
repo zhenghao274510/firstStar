@@ -5,11 +5,11 @@
       <div class="useInfo" @click.stop="change">
         <div class="usePic">
           <img src="@/assets/img/morentouxiang@2x.png" alt v-if="icon==''" />
-          <img :src="icon" alt v-else />
+          <img :src="use.icon" alt v-else />
         </div>
         <div class="use_title">
-          <h3>用户名称</h3>
-          <p>电话</p>
+          <h3>{{use.nickname}}</h3>
+          <p>{{use.account|Admin}}</p>
         </div>
         <img src="@/assets/img/xiayiye@2x.png" alt class="right" />
       </div>
@@ -44,11 +44,11 @@
       <div class="puop_con">
         <div class="puop_top">
           <p class="one">联系客服</p>
-          <p class="two"> {{kefuPhone}}</p>
+          <p class="two"> {{use.customer}}</p>
         </div>
         <div class="puop_btn">
           <span class="puop_can" @click.stop="show=false">取消</span>
-          <a :href="'tel://'+kefuPhone" class="puop_confirm">一键拨打</a>
+          <a :href="'tel://'+use.customer" class="puop_confirm">一键拨打</a>
         </div>
       </div>
     </div>
@@ -60,10 +60,9 @@
 export default {
   data() {
     return {
-      icon: "",
       show: false,
-      kefuPhone: "",
-      cid:''
+      uid:'',
+      use:{}
     };
   },
   //监听属性 类似于data概念
@@ -74,20 +73,18 @@ export default {
   components: {},
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
-    this.cid=JSON.parse(localStorage.getItem("qishouInfo")).cid;
-      // this.loadData()
+    this.uid=JSON.parse(localStorage.getItem("qishouInfo")).uid;
+      this.loadData()
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
   //方法集合
   methods: {
     loadData(){
-      let parmas={
-
-      }
-      this.$api.post(parmas).then(res=>{
+      this.$api.post({uid:this.uid},'userInfo').then(res=>{
           if(res.result==0){
-
+              this.use=res;
+              localStorage.setItem('qishouBalance',res.balance)
           }
       }).catch(err=>{})
     },
@@ -100,7 +97,7 @@ export default {
           this.$router.push("/shoplist");
           break;
         case 3:
-         this.$router.push({path:"/yijian",query:{id:0}});
+         this.$router.push({path:"/yijian",query:{id:1}});
           break;
         case 4:
           this.show = true;
@@ -109,7 +106,7 @@ export default {
     },
     sys_click() {
       let url = location.href.split("#")[0];
-      this.$api.post(url).then(res => {
+      this.$api.post(url,'auth').then(res => {
          if(res.result==0){
            this.$scode(res);
          }
@@ -119,7 +116,7 @@ export default {
       this.$router.push({
         path: "/person",
         query: {
-          id: 0
+          id: 1
         }
       });
     }

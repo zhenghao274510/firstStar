@@ -1,7 +1,6 @@
 import Vue from 'vue'
 import App from './App'
 import Vant from 'vant'
-import store from './store'
 import http from "@/assets/js/request.js"
 import sCorde from '@/assets/js/scqer.js'
 import 'vant/lib/index.css'
@@ -22,12 +21,14 @@ Vue.prototype.$scode=sCorde;
 Vue.config.productionTip = false
 require('es6-promise').polyfill()
 Es6Promise.polyfill()
+Vue.filter('Admin', function (val) { 
+  return `${val.slice(0, 3)}****${val.slice(-4)}`
+})
 new Vue({
 	el: '#app',
 	router,
 	components: {
-		App,
-		store
+		App
 	},
 	template: '<App/>'
 })

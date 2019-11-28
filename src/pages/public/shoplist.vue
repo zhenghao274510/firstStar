@@ -11,16 +11,15 @@
       finished-text="finishedTxt"
       @load="onLoad"
       :offset="10"
-      :immediate-check="init"
     >
       <ul>
-        <li class="useInfo">
+        <li class="useInfo" v-for="(item, index) in items" :key="index">
           <div class="usePic">
             <img src="@/assets/img/morentouxiang@2x.png" alt />
           </div>
           <div class="use_title">
-            <h3>用户名称</h3>
-            <p>电话</p>
+            <h3>{{item.shopName}}</h3>
+            <p>{{item.phone}}</p>
           </div>
           <img src="@/assets/img/shangjia_bohao@2x.png" alt class="right" />
         </li>
@@ -40,9 +39,11 @@ export default {
       loading:false,
       finished:false,
       init:false,
-      page:1,
+      page:0,
       totalPage:1,
-      finishedTxt:'没有更多了'
+      finishedTxt:'没有更多了',
+      dataList:[],
+      uid:''
     };
   },
   //监听属性 类似于data概念
@@ -63,20 +64,24 @@ export default {
   methods: {
       loadData() {
       let parmas = {
-        cmd:'',
-        page:this.page
+        uid:this.uid,
+        keyword:this.value,
+        pageNo:this.page,
+        pageSize:10
       };
       this.$api
-        .post(parmas)
+        .post(parmas,"shopList")
         .then(res => {
           this.totalPage=res.totalPage;
           if (res.result == 0) {
-            this.loading==true?this.loading=false:this.loading=true;
+            this.loading=false;
+            // this.loading==true?this.loading=false:this.loading=true;
             if(res.dataList!=undefined && res.dataList.length!=0){
               res.dataList.forEach(item=>{
                 this.dataList.push(item);
               })
             }else{
+              this.loading=false;
               this.finished=true;
               this.finishedTxt="暂无相关数据"
             }
@@ -85,14 +90,12 @@ export default {
         .catch(err => {});
     },
     onSearch() {
-        let parmas = {};
-      this.$api
-        .post(parmas)
-        .then(res => {
-          if (res.result == 0) {
-          }
-        })
-        .catch(err => {});
+      if(this.value==""){
+        this.$toast('请输入关键词!')
+      }else{
+        this.dataList=[];
+        this.loadData();
+      }
     },
     onLoad(){
        this.loading=true;

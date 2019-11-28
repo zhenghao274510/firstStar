@@ -32,9 +32,9 @@ export default {
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
     this.direct = this.$route.query.id;
-    this.direct == 0
-      ? (this.uid = JSON.parse(localStorage.getItem("qishouInfo")).cid)
-      : (this.uid = JSON.parse(localStorage.getItem("shopInfo")).cid);
+    this.direct == 1
+      ? (this.uid = JSON.parse(localStorage.getItem("qishouInfo")).uid)
+      : (this.uid = JSON.parse(localStorage.getItem("shopInfo")).uid);
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
@@ -55,7 +55,7 @@ export default {
             (this.content = ""),
             setTimeout(() => {
               this.$router.go(-1);
-            }, 1000))
+            }, 500))
           : this.$toast(res.resultNode);
       });
     }
@@ -76,7 +76,7 @@ export default {
   activated() {}
 };
 </script>
-<style scoped lang='less' rel='stylesheet/stylus'>
+<style scoped lang='less'>
 .yj_box {
   height: 100%;
   background-color: #fff;

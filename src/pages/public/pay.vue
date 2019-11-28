@@ -8,13 +8,13 @@
           <p>金额</p>
           <div>
             ￥
-            <input type="number" placeholder="请输入金额" v-model="money" />
+            <input type="number" placeholder="请输入金额" v-model="amount" />
           </div>
         </li>
         <li>
           <p>备注</p>
           <div>
-            <input type="text" placeholder="请输入备注信息(选填)"  v-model="msg"/>
+            <input type="text" placeholder="请输入备注信息(选填)"  v-model="remarks"/>
           </div>
         </li>
       </ul>
@@ -33,12 +33,10 @@ export default {
     return {
       name:'',
       text: "扫码支付",
-      money:"",
-      msg:"",
-      shopid:'',
-      cid:'',
-      height:
-        document.documentElement.clientHeight || document.body.clientHeight
+      amount:"",
+      remarks:"",
+      shopId:'',
+      uid:''
     };
   },
   //监听属性 类似于data概念
@@ -52,25 +50,28 @@ export default {
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
     this.name=this.$route.query.id;
+    this.shopId=this.$route.query.shopId;
+     this.direct == 1
+      ? (this.uid = JSON.parse(localStorage.getItem("qishouInfo")).uid)
+      : (this.uid = JSON.parse(localStorage.getItem("shopInfo")).uid);
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {
-    let num = this.height;
-    window.onresize = () => {
-      document.getElementsByTagName("html")[0].style.height = num;
-    };
+    // let num = this.height;
+    // window.onresize = () => {
+    //   document.getElementsByTagName("html")[0].style.height = num;
+    // };
   },
   //方法集合
   methods: {
     payMoney(){
       let parmas={
-            cmd:'',
-            shopid:this.shopId,
-            money:this.money,
-            msg:this.msg,
-            cid:this.cid
+            shopId:this.shopId,
+            amount:this.amount,
+            remarks:this.remarks,
+            uid:this.uid
       }
-      this.$api.post(parmas).then(res=>{
+      this.$api.post(parmas,'pay').then(res=>{
              if(res.result==0){
                wxPay.pay(res)
              }
@@ -97,7 +98,6 @@ export default {
 .box {
   width: 100%;
   height: 100%;
-  background: #fafafa;
   .content {
     display: flex;
     width: 100%;

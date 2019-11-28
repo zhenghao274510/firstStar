@@ -4,26 +4,26 @@
       <h4 class="index_title">首页</h4>
       <div class="useInfo" @click="change">
         <div class="usePic">
-          <img src="@/assets/img/morentouxiang@2x.png" alt v-if="icon==''" />
-          <img :src="icon" alt v-else />
+          <!-- <img src="@/assets/img/morentouxiang@2x.png" alt v-if="icon==''" /> -->
+          <img :src="use.icon" alt />
         </div>
         <div class="use_title">
-          <h3>用户名称</h3>
-          <p>电话</p>
+          <h3>{{use.nickname}}</h3>
+          <p>{{use.account|Admin}}</p>
         </div>
         <img src="@/assets/img/xiayiye@2x.png" alt class="right" />
       </div>
       <ul class="shop_money">
         <li @click="gotoall(3)">
-          <h4>4564</h4>
+          <h4>{{use.todayAmount}}</h4>
           <p>今日收益</p>
         </li>
         <li @click="gotoall(3)">
-          <h4>4556</h4>
+          <h4>{{usemonthAmount}}</h4>
           <p>本月收益</p>
         </li>
         <li @click="gotoall(3)">
-          <h4>54456</h4>
+          <h4>{{use.balance}}</h4>
           <p>账户余额</p>
         </li>
       </ul>
@@ -49,13 +49,13 @@
           </van-tabbar-item>
         </van-tabbar>
       </div>
-      <div @click="sys_click" class="con_bottom">
-        <img src="@/assets/img/erweima.png" alt />
+      <div class="con_bottom">
+        <img src="@/assets/img/shoukuanma.jpg" alt @touchstar="touchStar" @touchend="touchEnd" />
         <p>长按保存收款码</p>
       </div>
-      <a class="end" :href="'tell://'+kefuPhone">
+      <a class="end" :href="'tell://'+customer">
         <img src="@/assets/img/dibu_bohao@2x.png" alt />
-        <p>454545</p>
+        <p>{{use.customer}}</p>
       </a>
     </div>
   </div>
@@ -63,12 +63,14 @@
 
 <script>
 //import 《组件名称》 from '《组件路径》';
+import QR from "@/assets/js/qrcode.js"
 export default {
   data() {
     return {
       icon: "",
-      cid:'',
-      kefuPhone:''
+      uid: "",
+      customer: "",
+      use: {}
     };
   },
   //监听属性 类似于data概念
@@ -79,22 +81,30 @@ export default {
   components: {},
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
-    this.cid=JSON.parse(localStorage.getItem("shopInfo")).cid;
-    // this.loadData()
+    // this.uid = JSON.parse(localStorage.getItem("shopInfo")).uid;
+    this.creatSc();
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
   //方法集合
   methods: {
     loadData() {
-      let parmas = {};
       this.$api
-        .post(parmas)
+        .post({ uid: this.uid }, "userInfo")
         .then(res => {
           if (res.result == 0) {
+            this.use = res;
+            this.creatSc(res)
+            localStorage.setItem("shopBalance", res.balance);
           }
         })
         .catch(err => {});
+    },
+    creatSc(e){
+        // let val=JSON.stringify({name:e.name,shopId:e.shopId})  
+        let val={name:"张山",shopId:"eretr"}  
+
+        this.img=QR.createQrCodeImg(val);
     },
     gotoall(num) {
       switch (num) {
@@ -108,24 +118,31 @@ export default {
           this.$router.push("/shop_money");
           break;
         case 4:
-          this.$router.push({path:"/yijian",query:{id:1}});
+          this.$router.push({ path: "/yijian", query: { id: 2 } });
           break;
       }
     },
     sys_click() {
-      this.url = location.href.split("#")[0];
-      this.$api.post(this.url).then(res => {
-        var data = res;
-        this.$scode(data);
+      let url = location.href.split("#")[0];
+      this.$api.post(url, "auth").then(res => {
+        if (res.result == 0) {
+          this.$scode(data);
+        }
       });
     },
     change() {
       this.$router.push({
         path: "/person",
         query: {
-          id: 1
+          id: 2
         }
       });
+    },
+    touchStar(e) {
+      console.log(e);
+    },
+    touchEnd(e) {
+      console.log(e);
     }
   },
   //生命周期 - 创建之前
@@ -172,14 +189,14 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
-  
+
   .shao_cont {
     display: flex;
     flex-direction: column;
     flex: 1;
     width: 100%;
     background: #fafafa;
-    padding-bottom:.5rem;
+    padding-bottom: 0.5rem;
     .top-bar {
       background: #fafafa;
     }

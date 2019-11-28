@@ -6,7 +6,7 @@
         <img src="@/assets/img/qianbao@2x.png" alt />
         <div class="con_info">
           <h4>当前账户余额</h4>
-          <h2>200</h2>
+          <h2>{{balance}}</h2>
         </div>
       </div>
 
@@ -20,6 +20,7 @@
         :duration="0.5"
         @change="changeIng"
       >
+        <!-- :immediate-check="init" -->
         <van-tab :title="v" v-for="(v,k) in tab" :key="k">
           <van-list
             v-model="loading"
@@ -27,21 +28,21 @@
             finished-text="没有更多了"
             @load="onLoad"
             :offset="10"
-            :immediate-check="init"
           >
             <ul class="cont_list">
-              <li class="list_swipe">
+              <li class="list_swipe" v-for="(item,index) in dataList" :key="index">
                 <div class="list_title">
-                  <p>时间</p>
+                  <p>{{item.createDate}}</p>
                 </div>
                 <ul>
                   <li>
                     <div class="list_top">
-                      <span v-if="active==0">4564564564564</span>
-                      <span v-else>账户充值</span>
-                      <span>154564</span>
+                      <span v-if="active==0">{{item.title}}</span>
+                      <span v-else>{{item.title}}-账户充值</span>
+                      <span v-if="active==0">-{{item.amount}}</span>
+                      <span style="color:#0081FF" v-else>+{{item.amount}}</span>
                     </div>
-                    <p v-if="active==0">45645645645</p>
+                    <p v-if="active==0">备注：{{item.remarks}}</p>
                   </li>
                   <li>
                     <div class="list_top">
@@ -88,12 +89,13 @@ export default {
       active: 0,
       finished: false,
       init: false,
-      cid: "",
+      uid: "",
       totalPage: 1,
-      page: 1,
+      page: 0,
       dataList: [],
       money: "",
-      finishedTxt: ""
+      finishedTxt: "",
+      balance:''
     };
   },
   //监听属性 类似于data概念
@@ -108,7 +110,8 @@ export default {
   created() {
     let qishouInfo = localStorage.getItem("qishouInfo");
     this.cid = JSON.parse(qishouInfo).cid;
-    this.loadData(this.page, this.active);
+    this.balance=localStorage.getItem('qishouBalance')
+    // this.loadData(this.page, this.active);
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
@@ -117,14 +120,14 @@ export default {
     loadData(p, a) {
       let parmas = {
         cmd: "",
-        cid: this.cid,
+        uid: this.uid,
         page: p,
         type: a
       };
       this.$api
-        .post(parmas)
+        .post(parmas, "balanceLog")
         .then(res => {
-          this.loading == true ? (this.loading = false) : (this.loading = true);
+          this.loading = false;
           // if (res.result == 0) {
           res.result == 0
             ? ((this.totalPage = res.totalPage),
@@ -132,9 +135,10 @@ export default {
                 ? res.dataList.forEach(item => {
                     this.dataList.push(item);
                   })
-                : ((this.finished = true), (this.finishedTxt = "暂无相关数据")))
+                : ((this.finished = true),
+                  (this.finishedTxt = "暂无相关数据")))
             : this.$toast("请求失败!请稍后重试!");
-          // if (res.dataList != undefined || res.dataList.length != 0) {
+          // if (res.dataList != undefined |&& res.dataList.length != 0) {
           //   res.dataList.forEach(item => {
           //     this.dataList.push(item);
           //   });
@@ -174,9 +178,9 @@ export default {
     initData() {
       this.page = 1;
       this.totalPage = 1;
-      this.finished=false;
+      this.finished = false;
       this.dataList = [];
-      this.loadData();
+      this.loadData(this.page, this.active);
     }
   },
   //生命周期 - 创建之前

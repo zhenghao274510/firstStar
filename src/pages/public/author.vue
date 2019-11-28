@@ -27,19 +27,22 @@ export default {
         theRequest[strs[i].split("=")[0]] = strs[i].split("=")[1];
       }
     }
-    if (theRequest.type == 0) {
+    let num=theRequest.type-0;
+    let openid=theRequest.openid
+    if (num == 1) {
       // type=0 骑手端
-      if (localStorage.getItem("qishouInfo")) {
+      if (localStorage.getItem("qishouInfo")){
         this.$router.replace("/qishou_index");
       } else {
         this.$router.replace({
           path: "resgin",
           query: {
-            id: 0
+            id: 1,
+            openid:openid
           }
         });
       }
-    } else if (theRequest.type == 1) {
+    } else if (num == 2) {
       // type=1 商家端
       if (localStorage.getItem("shopInfo")) {
         this.$router.replace("/shop_index");
@@ -47,7 +50,8 @@ export default {
         this.$router.replace({
           path: "resgin",
           query: {
-            id: 1
+            id: 2,
+           openid:openid
           }
         });
       }

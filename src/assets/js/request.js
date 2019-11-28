@@ -3,11 +3,11 @@ import {
   Toast
 } from 'vant';
 const http={
-  post(data = {}, method = 'post') {
+  post(data = {},t) {
     return new Promise((resolve, reject) => {
       axios({
-          url: encodeURI("https://m.anxihtx.com/wineshop/api/service?json=" + JSON.stringify(data)),
-          method: method,
+          url: encodeURI("http://192.168.3.2:8080/api/"+t+"?json=" + JSON.stringify(data)),
+          method: "post",
           headers: {
             'Content-Type': 'application/json'
           }
@@ -18,7 +18,7 @@ const http={
         .catch(res => {
           //失败
           // reject(res)
-          Toast('请求超时!请稍后重试!')
+          Toast('网络不稳定!请稍后重试!')
         })
     })
   },
@@ -29,7 +29,7 @@ const http={
     });
     return new Promise((resolve, reject) => {
       axios({
-          url: encodeURI("https://m.anxihtx.com/wineshop/api/service?json=" + JSON.stringify(data)),
+          url: encodeURI("http://192.168.3.2:8080/api/"+t+"?json=" + JSON.stringify(data)),
           method: method,
           headers: {
             'Content-Type': 'application/json'
@@ -42,8 +42,7 @@ const http={
         })
         .catch(res => {
           Toast.clear();
-          Toast('请求超时!请稍后重试!')
-
+          Toast('网络不稳定!请稍后重试!')
         })
     })
   },
@@ -64,7 +63,7 @@ const http={
         .catch(res => {
           //失败
           // reject(res)
-          Toast('请求超时！')
+          Toast('网络不稳定!请稍后重试!')
 
         })
     })
@@ -76,8 +75,9 @@ const http={
     });
     return new Promise((resolve, reject) => {
       axios({
-          url: encodeURI('https://m.anxihtx.com/wineshop/api/auth?url=' + data),
+          url: encodeURI('http://192.168.3.2:8080/api//uploadFile'),
           method: method,
+          data:data,
           headers: {
             "Content-Type": "multipart/form-data"
           }
@@ -85,12 +85,12 @@ const http={
         .then(res => {
           //成功
           Toast.clear();
-          Toast('上传成功!')
+         reject(res.data)
         })
         .catch(res => {
           //失败
           Toast.clear();
-          Toast("上传失败!")
+          Toast("网络不稳定!请稍后重试!")
         })
     })
   },

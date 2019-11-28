@@ -10,24 +10,24 @@
 
       <ul class="usecon">
         <li>
-          <input type="number" placeholder="用户名" name="telphone" v-model="tel" disabled />
+          <input type="number" placeholder="用户名" name="telphone" v-model="account" />
         </li>
         <!-- <li>
         <input type="number" placeholder="请输入验证码" name="usetext" ref="usema" />
         <i @click="getma" v-text="ma"></i>
         </li>-->
         <li>
-          <input type="password" name="usepsd" v-model="usepsd" placeholder="密码" disabled />
+          <input type="password" name="usepsd" v-model="password" placeholder="密码" />
         </li>
 
         <div class="resok" @click="sub">
           <span>登录</span>
         </div>
       </ul>
-       <div style="margin-top:.15rem;">用户名和密码请联系客服索取</div>
-      <a class="download" :href="'tell://'+kefuPhone">
+      <div style="margin-top:.15rem;">用户名和密码请联系客服索取</div>
+      <a class="download" :href="'tell://'+phone">
         <img src="@/assets/img/dibu_bohao@2x.png" alt />
-        <span>0371-6666668</span>
+        <span>{{phone}}</span>
       </a>
     </div>
   </div>
@@ -36,20 +36,16 @@
 //import 《组件名称》 from '《组件路径》';
 // import Request from "@/common/request"
 import pageHeade from "./../components/header";
-import { Toast } from "vant";
 export default {
   data() {
     return {
       text: "骑手端",
-      tel: "",
+      account: "",
       // 用户密码
-      usepsd: "",
+      password: "",
       pid: "",
-      type: "",
-      show: false,
-      kefuPhone:'',
-      height:
-        document.documentElement.clientHeight || document.body.clientHeight,
+      openid: "",
+      uid: "",
       type: 0 // 0   骑手   1  商家
     };
   },
@@ -64,35 +60,46 @@ export default {
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
     this.type = this.$route.query.id;
-    if (this.type == 0) {
-      this.text = "骑手端";
-    } else {
-      this.text = "商家端";
-    }
+    this.openid = this.$route.query.openid;
+    this.type == 1 ? (this.text = "骑手端") : (this.text = "商家端");
+    // if (this.type == 0) {
+    //   this.text = "骑手端";
+    // } else {
+    //   this.text = "商家端";
+    // }
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
-  mounted() {
-    let num = this.height;
-    window.onresize = () => {
-      document.getElementsByTagName("html")[0].style.height = num;
-    };
-  },
+  mounted() {},
   //方法集合
   methods: {
+    gettell(){
+        this.$api.post('customer').then(res=>{
+           if(res.result==0){
+             this.phone=res.phone;
+           }
+        })
+    },
     sub() {
-      if (this.usepsd == "") {
-        Toast("请输入密码!");
+      this.usepsd == "" ? this.$toast("请输入密码!") : this.loadData();
+    },
+    loadData() {
+      if (this.account == "") {
+        this.$toast("账号不能为空!");
+      } else if (this.password == "") {
+        this.$toast("密码不能为空");
       } else {
         let parmas = {
-          cmd: "register",
-          phone: this.tel,
-          pid: this.pid,
+          account: this.account,
+          password: this.password,
+          openid: this.openid,
           type: this.type
-          // password: hex_md5(this.usepsd)
         };
-        Request.postRequest(parmas)
+        this.$api
+          .post(parmas, "userLogin")
           .then(res => {
-            res.result == 0 ? this.success() : Toast(res.resultNode);
+            res.result == 0
+              ? ((this.uid = res.uid), this.success())
+              : Toast(res.resultNode);
           })
           .catch(err => {
             console.log(err);
@@ -101,19 +108,27 @@ export default {
     },
     success() {
       Toast("登录成功!");
-      this.type==0?this.qishouIndex():this.shopIndex();
+      this.type == 1 ? this.qishouIndex() : this.shopIndex();
     },
     shopIndex() {
-      localStorage.setItem("shopInfo");
+      let shopInfo = {
+        openid: this.openid,
+        uid: this.uid
+      };
+      localStorage.setItem("shopInfo", JSON.stringify(shopInfo));
       setTimeout(() => {
         this.$router.replace("/shop_index");
-      }, 2000);
+      }, 500);
     },
     qishouIndex() {
-      localStorage.setItem("qishouInfo");
+      let qishouInfo = {
+        openid: this.openid,
+        uid: this.uid
+      };
+      localStorage.setItem("qishouInfo", JSON.stringify(qishouInfo));
       setTimeout(() => {
         this.$router.replace("/qishou_index");
-      }, 2000);
+      }, 500);
     }
   },
   //生命周期 - 创建之前
@@ -135,11 +150,10 @@ export default {
 <style scoped lang='less' rel='stylesheet/stylus'>
 .content {
   width: 100%;
-  height: 100%;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  background:#fff;
+  background: #fff;
 }
 .box {
   width: 100%;
@@ -150,7 +164,7 @@ export default {
   align-items: center;
   position: relative;
   .img_box {
-    margin: .5rem 0;
+    margin: 0.5rem 0;
     display: flex;
     flex-direction: column;
     .logo {
@@ -214,7 +228,7 @@ export default {
     }
   }
   .download {
-    margin-top: .3rem;
+    margin-top: 0.3rem;
     img {
       width: 0.18rem;
       height: 0.18rem;

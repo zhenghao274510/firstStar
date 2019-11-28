@@ -3,7 +3,7 @@
     <page-heade :title="text"></page-heade>
     <ul>
       <li>
-        <input type="password" v-model="oldpwd" placeholder="请输入原密码" id="input" />
+        <input type="text" v-model="oldpwd" placeholder="请输入原密码" />
       </li>
       <li>
         <input type="password" v-model="newpwd" placeholder="请输入新密码" />
@@ -28,8 +28,7 @@ export default {
       repeatpwd: "",
       pwd: "",
       type: "",
-      cid: "",
-      height:document.documentElement.clientHeight||document.body.clientHeight
+      uid: ""
     };
   },
   //监听属性 类似于data概念
@@ -43,37 +42,37 @@ export default {
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
       this.type=this.$route.query.id;
+      this.uid= JSON.parse(localStorage.getItem("use")).uid;  
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {
-    // let num=this.height;
-    // window.onresize=()=>{
-    //   document.getElementsByTagName('html')[0].style.height=num;
-    // }
   },
   //方法集合
   methods: {
     SubChange() {
         if (this.oldpwd == this.newpwd) {
-          this.$toast("两次密码不能一致!");
-        } else if (this.newpwd != this.repeatpwd) {
+          this.$toast("新旧密码不能一致!");
+        } else 
+        if (this.newpwd != this.repeatpwd) {
           this.$toast("新密码输入不一样!");
-        } else if (this.oldpwd != this.pwd) {
-          this.$toast("原密码输入不正确!");
-        } else {
+        }
+        //  else if (this.oldpwd != this.pwd) {
+        //   this.$toast("原密码输入不正确!");
+        // } 
+        else {
           let parmas = {
-            cmd: "updateCardPwd",
-            type: this.type,
-            cid:this.cid,
-            oldpwd: this.oldpwd,
-            newpwd: this.newpwd,
+            uid:this.uid,
+            oldPassword: this.oldpwd,
+            newPassword: this.newpwd,
           };
-          this.$api.post(parmas).then(res => {
+          this.$api.post(parmas,'userLogin').then(res => {
             this.$toast(res.resultNote);
             if (res.result == 0) {
               setTimeout(() => {
                 this.$router.back(-1);
-              });
+              },1000);
+            }else{
+              this.$toast(res.resultNote);
             }
           });
         }

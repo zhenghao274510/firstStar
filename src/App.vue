@@ -18,8 +18,8 @@ export default {
   components: {},
   mounted() {
        let num=this.height;
-    window.onload =window.onresize=()=>{
-      document.getElementById('app').style.height=num;
+    window.onload =()=>{
+      document.getElementsByTagName('html')[0].style.height=num+'px';
       setFont.setrem()
     }
   },
