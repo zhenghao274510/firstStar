@@ -13,7 +13,7 @@
         color="#0081FF"
         title-active-color="#0081FF"
         sticky
-        :offset-top="60"
+        :offset-top="50"
         swipeable
         animated
         :duration="0.5"
@@ -26,7 +26,7 @@
             :finished="finished"
             :finished-text="finishedTxt"
             @load="onLoad"
-            :offset="10"
+            immediate-check="false"
           >
             <ul class="cont_list">
               <li class="list_swipe" v-for="(item,index) in dataList" :key="index">
@@ -36,35 +36,11 @@
                 <ul>
                   <li>
                     <div class="list_top">
-                      <span v-if="active==0">{{item.title}}</span>
-                      <span v-else>{{item.title}}-提现</span>
-                      <span v-if="active==0" style="color:#0081FF">+{{item.amount}}</span>
-                      <span v-else>-{{item.amount}}</span>
+                      <span>{{item.title}}</span>
+                      <span v-if="active==0">-{{item.amount}}</span>
+                      <span v-else style="color:#0081FF">+{{item.amount}}</span>
                     </div>
-                    <p v-if="active==0">备注：{{item.remarks}}</p>
-                  </li>
-                  <li>
-                    <div class="list_top">
-                      <span v-if="active==0">4564564564564</span>
-                      <span v-else>提现</span>
-                      <span>154564</span>
-                    </div>
-                    <p v-if="active==0">45645645645</p>
-                  </li>
-                </ul>
-              </li>
-              <li class="list_swipe">
-                <div class="list_title">
-                  <p>时间</p>
-                </div>
-                <ul>
-                  <li>
-                    <div class="list_top">
-                      <span v-if="active==0">4564564564564</span>
-                      <span v-else>提现</span>
-                      <span>154564</span>
-                    </div>
-                    <p v-if="active==0">45645645645</p>
+                    <p v-if="item.remarks!=''">备注：{{item.remarks}}</p>
                   </li>
                 </ul>
               </li>
@@ -85,16 +61,16 @@ export default {
       text: "我的余额",
       tab: ["支出记录", "收入记录"],
       loading: false,
-      avtive: 0,
+      active: 0,
       finished: false,
       // init: false,
-      page: 0,
+      page: 1,
       totalPage: 1,
       dataList: [],
       finishedTxt: "",
       isLoading: false,
       uid: "",
-      balance:''
+      balance: ""
     };
   },
   //监听属性 类似于data概念
@@ -109,8 +85,8 @@ export default {
   created() {
     let shopInfo = localStorage.getItem("shopInfo");
     this.uid = JSON.parse(shopInfo).uid;
-    this.balance=localStorage.getItem('shopBalance')
-    // this.loadData(this.page, thia.active);
+    this.balance = localStorage.getItem("shopBalance");
+    this.loadData(this.page,this.active);
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
@@ -147,20 +123,8 @@ export default {
                 ? res.dataList.forEach(item => {
                     this.dataList.push(item);
                   })
-                : ((this.finished = true),
-                  (this.finishedTxt = "暂无相关数据")))
-            : this.$toast("请求失败!请稍后重试!");
-          // if(res.result==0){
-          //   this.totalPage=res.totalPage;
-          //   if(res.dataList!=undefined && res.dataList.length!=0){
-          //     res.dataList.forEach(item=>{
-          //       this.dataList.push(item);
-          //     })
-          //   }else{
-          //     this.finished=true;
-          //     this.finishedTxt="暂无相关数据"
-          //   }
-          // }
+                : ((this.finished = true), (this.finishedTxt = "暂无相关数据")))
+            : this.$toast(res.resultNote);
         })
         .catch(err => {});
     },
@@ -169,7 +133,7 @@ export default {
       this.initData();
     },
     initData() {
-      this.page = 0;
+      this.page = 1;
       this.totalPage = 1;
       this.dataList = [];
       this.finished = false;

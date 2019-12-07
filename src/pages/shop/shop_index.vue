@@ -4,8 +4,8 @@
       <h4 class="index_title">首页</h4>
       <div class="useInfo" @click="change">
         <div class="usePic">
-          <!-- <img src="@/assets/img/morentouxiang@2x.png" alt v-if="icon==''" /> -->
-          <img :src="use.icon" alt />
+          <img src="@/assets/img/morentouxiang@2x.png" alt v-if="use.icon==''" />
+          <img :src="use.icon" v-else alt />
         </div>
         <div class="use_title">
           <h3>{{use.nickname}}</h3>
@@ -19,7 +19,7 @@
           <p>今日收益</p>
         </li>
         <li @click="gotoall(3)">
-          <h4>{{usemonthAmount}}</h4>
+          <h4>{{use.monthAmount}}</h4>
           <p>本月收益</p>
         </li>
         <li @click="gotoall(3)">
@@ -50,10 +50,14 @@
         </van-tabbar>
       </div>
       <div class="con_bottom">
-        <img src="@/assets/img/shoukuanma.jpg" alt @touchstar="touchStar" @touchend="touchEnd" />
+        <div class="qrcode_con">
+          <div id="qrcode" class="qrcode"></div>
+          <img src alt id="img" />
+        </div>
+
         <p>长按保存收款码</p>
       </div>
-      <a class="end" :href="'tell://'+customer">
+      <a class="end" :href="'tel://'+use.customer">
         <img src="@/assets/img/dibu_bohao@2x.png" alt />
         <p>{{use.customer}}</p>
       </a>
@@ -63,14 +67,16 @@
 
 <script>
 //import 《组件名称》 from '《组件路径》';
-import QR from "@/assets/js/qrcode.js"
+import QRCode from "qrcodejs2";
+import wx from "weixin-js-sdk";
+import html2canvas from "html2canvas";
 export default {
   data() {
     return {
       icon: "",
       uid: "",
-      customer: "",
-      use: {}
+      use: {},
+      show: true
     };
   },
   //监听属性 类似于data概念
@@ -81,8 +87,8 @@ export default {
   components: {},
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
-    // this.uid = JSON.parse(localStorage.getItem("shopInfo")).uid;
-    this.creatSc();
+    this.uid = JSON.parse(localStorage.getItem("shopInfo")).uid;
+    this.loadData();
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
@@ -94,17 +100,33 @@ export default {
         .then(res => {
           if (res.result == 0) {
             this.use = res;
-            this.creatSc(res)
+            let info = JSON.stringify({
+              nickname: res.nickname,
+              shopId: this.uid
+            });
+            this.$nextTick(() => {
+              this.creatQrcode(info);
+            });
             localStorage.setItem("shopBalance", res.balance);
           }
         })
         .catch(err => {});
     },
-    creatSc(e){
-        // let val=JSON.stringify({name:e.name,shopId:e.shopId})  
-        let val={name:"张山",shopId:"eretr"}  
-
-        this.img=QR.createQrCodeImg(val);
+    creatQrcode(e) {
+      var qrcode = new QRCode(document.getElementById("qrcode"), {
+        text: e,
+        width: 110,
+        height: 110
+      });
+      setTimeout(() => {
+        html2canvas(document.querySelector(".qrcode"), {
+          useCORS: true,
+          foreignObjectRendering: true
+        }).then(canvas => {
+          let dataurl = canvas.toDataURL("image/png");
+          document.getElementById("img").src = dataurl;
+        });
+      }, 1000);
     },
     gotoall(num) {
       switch (num) {
@@ -112,7 +134,7 @@ export default {
           this.sys_click();
           break;
         case 2:
-          this.$router.push("/shoplist");
+          this.$router.push({ path: "/shoplist", query: { uid: this.uid } });
           break;
         case 3:
           this.$router.push("/shop_money");
@@ -124,9 +146,11 @@ export default {
     },
     sys_click() {
       let url = location.href.split("#")[0];
-      this.$api.post(url, "auth").then(res => {
+      this.$api.post({ url: url }, "auth").then(res => {
         if (res.result == 0) {
-          this.$scode(data);
+          this.Scrode(res, this.uid);
+        } else {
+          this.$toast(res.resultNote);
         }
       });
     },
@@ -138,12 +162,47 @@ export default {
         }
       });
     },
-    touchStar(e) {
-      console.log(e);
+    Scrode(data, uid) {
+      wx.config({
+        // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+        debug: false,
+        // 必填，公众号的唯一标识
+        appId: data.appId,
+        // 必填，生成签名的时间戳
+        timestamp: data.timestamp,
+        // 必填，生成签名的随机串
+        nonceStr: data.noncestr,
+        // 必填，签名
+        signature: data.signature,
+        // 必填，需要使用的JS接口列表，所有JS接口列表
+        jsApiList: ["checkJsApi", "scanQRCode"]
+      });
+      const that = this;
+      wx.ready(() => {
+        wx.scanQRCode({
+          needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+          scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+          success(r) {
+            let arr = eval("(" + r.resultStr + ")");
+            that.$router.push({
+              path: "/pay",
+              query: {
+                nickname: arr.nickname,
+                shopId: arr.shopId,
+                uid: uid
+              }
+            });
+          },
+          fail: function(res) {
+            // alert("扫码出错了2：" + res.errMsg);
+            Toast("扫码出错了!" + res.errMsg);
+          },
+          complete: function(res) {}
+        });
+      });
     },
-    touchEnd(e) {
-      console.log(e);
-    }
+    touchstart(e) {},
+    touchend(e) {}
   },
   //生命周期 - 创建之前
   beforeCreate() {},
@@ -166,6 +225,7 @@ export default {
   height: 1rem;
   background: #fafafa;
   font-size: 0.14rem;
+  color: #333333;
 }
 .van-tabbar-item__icon img {
   width: 0.24rem;
@@ -175,6 +235,15 @@ export default {
 .van-hairline--top-bottom::after {
   border: none;
 }
+// #img
+//   position: absolute;
+//   top: 50%;
+//   left: 50%;
+//   transform: translate(-50%,-50%);
+//   width: 2rem;
+//   height: 2rem;
+//   opacity: 0;
+//
 .shop_money {
   display: flex;
   background: #fff;
@@ -189,6 +258,7 @@ export default {
   height: 100%;
   display: flex;
   flex-direction: column;
+  align-items: center;
 
   .shao_cont {
     display: flex;
@@ -206,10 +276,29 @@ export default {
       justify-content: center;
       align-items: center;
       margin-top: 0.6rem;
-      img {
+      position: relative;
+      .qrcode_con {
         width: 1.05rem;
         height: 1.05rem;
+        position: relative;
+        .qrcode {
+          width: 1.05rem;
+          height: 1.05rem;
+          z-index: 1;
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
+        #img {
+          width: 1.05rem;
+          height: 1.05rem;
+          z-index: 999;
+          position: absolute;
+          top: 0;
+          left: 0;
+        }
       }
+
       p {
         text-align: center;
         margin-top: 0.26rem;
@@ -252,6 +341,11 @@ export default {
     width: 0.7rem;
     height: 0.7rem;
     border-radius: 50%;
+    img {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 50%;
+    }
   }
   .right {
     width: 0.1rem;

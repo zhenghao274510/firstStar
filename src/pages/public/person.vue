@@ -6,24 +6,23 @@
         <li style="margin-bottom:10px:height:100px;border:none;">
           <span>修改头像</span>
           <div class="modify_right">
-            <!-- <van-uploader :after-read="onRead"> -->
-              <img :src="icon" alt style="border-radius: 50%;"/>
-              <!-- <img src="@/assets/img/morentouxiang@2x.png" alt v-else /> -->
-            <!-- </van-uploader> -->
+            <img :src="icon" alt style="border-radius: 50%;" v-if="icon!=''" />
+            <img src="@/assets/img/morentouxiang@2x.png" alt v-else />
+            <input type="file" class="input" @change="Upfiles" />
             <img src="@/assets/img/xiayiye2@2x.png" alt class="right" />
           </div>
         </li>
         <li style="margin-top:20px;">
           <span>昵称</span>
           <div class="modify_right">
-            <input type="text" placeholder="请输入昵称" v-model="nickname" @blur="change" />
+            <input type="text" placeholder="请输入昵称" v-model="nickname" @blur="changeName" />
             <img src="@/assets/img/xiayiye2@2x.png" alt class="right" />
           </div>
         </li>
         <li>
           <span>账号</span>
           <div class="modify_right">
-            <span>{{account| Admin}}</span>
+            <span>{{account|Admin}}</span>
             <img src="@/assets/img/xiayiye2@2x.png" alt class="right" />
           </div>
         </li>
@@ -50,10 +49,10 @@ export default {
       imgs: "",
       url: "",
       type: "",
-      uid:'',
-      nickname:'',
-      icon:'',
-      account:''
+      uid: "",
+      nickname: "",
+      icon: "",
+      account: ""
     };
   },
   components: {
@@ -61,59 +60,64 @@ export default {
   },
   created() {
     this.type = this.$route.query.id;
-    this.uid=JSON.parse(localStorage.getItem('use')).cid;
+    this.type == 1
+      ? (this.uid = JSON.parse(localStorage.getItem("qishouInfo")).uid)
+      : (this.uid = JSON.parse(localStorage.getItem("shopInfo")).uid);
+      this.getuser();
   },
   mounted() {},
   methods: {
-    getuser(){
-       this.$api.post({uid:this.uid},'userInfo').then(res=>{
-          if(res.result==0){
-               this.nickname=res.nickname;
-               this.icon=res.icon;
-               this.account=res.account;
-          }
-       })
+    getuser() {
+      this.$api.post({ uid: this.uid }, "userInfo").then(res => {
+        if (res.result == 0) {
+          this.nickname = res.nickname;
+          this.icon = res.icon;
+          this.account = res.account;
+        } else {
+          this.$toast(res.resultNote);
+        }
+      });
     },
-    onRead(file) {
-      if (this.imgs.length >= 1) {
-        Toast("最多上传1张图片");
-      } else {
-        this.headImage = file.content;
-      }
+    Upfiles() {
+      var event = event || window.event;
+      var file = event.target.files[0];
       var formdata = new FormData();
-      formdata.append("file", file.file);
-      this.$api
-        .upfile(formdata)
+      formdata.append("file", file);
+      this.$api.upfile(formdata)
         .then(res => {
           // console.log(res)
           if (res.result == 0) {
-            this.url = res.url;
+            this.save(res.url);
             console.log(res.url);
+          } else {
+            this.$toast(res.resultNote);
           }
         })
         .catch(res => {
           console.log(res);
         });
     },
-    save() {
+    save(url) {
       let parmas = {
-        uid: this.cid,
-        icon: this.url,
+        uid: this.uid,
+        icon:url
       };
-      this.$api
-        .post(parmas,'updateIcon')
+   this.$api
+        .post(parmas, "updateIcon")
         .then(res => {
           console.log(res);
-          if(res.result==0){
-            Toast('上传成功!')
-             this.getuser();
+          this.$toast(res.resultNote);
+          if (res.result == 0) {
+            this.getuser();
           }
         })
-        .catch(res => {
-          Toast("请求超时!");
-        });
+        .catch(res => {});
     },
     loginOut() {
+      // this.$router.replace({path:'/resgin',query:{id:this.type,back:1,openid:}})
+      this.type == 1
+        ? localStorage.removeItem("qishouInfo")
+        : localStorage.removeItem("shopInfo");
       document.addEventListener(
         "WeixinJSBridgeReady",
         function() {
@@ -130,26 +134,27 @@ export default {
           id: this.type
         }
       });
-    }
-  },
-  change(){
-     let parmas = {
-        uid: this.cid,
-        nickname: this.nickname,
+    },
+    changeName() {
+      let parmas = {
+        uid: this.uid,
+        nickname: this.nickname
       };
       this.$api
-        .post(parmas,'updateNickname')
+        .post(parmas, "updateNickname")
         .then(res => {
           console.log(res);
-          if(res.result==0){
-            Toast('修改成功!')
+          if (res.result == 0) {
+            Toast("修改成功!");
+          }else{
+            Toast(res.resultNote);
           }
         })
         .catch(res => {
           Toast("请求超时!");
         });
+    }
   }
- 
 };
 </script>
 
@@ -184,6 +189,15 @@ export default {
         background: #ffffff;
         &:first-child {
           height: 100px;
+          position: relative;
+          .input {
+            position: absolute;
+            top: 0;
+            left: 0;
+            bottom: 0;
+            right: 0;
+            opacity: 0;
+          }
         }
         .modify_right {
           display: flex;

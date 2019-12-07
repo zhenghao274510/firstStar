@@ -3,17 +3,18 @@ import {
   Toast
 } from 'vant';
 const http={
-  post(data = {},t) {
+  post(data={},t) {
     return new Promise((resolve, reject) => {
       axios({
-          url: encodeURI("http://192.168.3.2:8080/api/"+t+"?json=" + JSON.stringify(data)),
+          url: encodeURI("http://m.hnsgsmyxgs.com/api/"+t ),
           method: "post",
+          data:JSON.stringify(data),
           headers: {
             'Content-Type': 'application/json'
           }
         })
         .then(res => {
-          reject(res.data)
+          resolve(res.data)
         })
         .catch(res => {
           //失败
@@ -22,22 +23,23 @@ const http={
         })
     })
   },
-  get(data = {}, method = 'get') {
+  postLoading(data = {},t) {
     Toast.loading({
-      message: '加载中...',
+      message: '支付中...',
       mask: false
     });
     return new Promise((resolve, reject) => {
       axios({
-          url: encodeURI("http://192.168.3.2:8080/api/"+t+"?json=" + JSON.stringify(data)),
-          method: method,
+          url: encodeURI("http://m.hnsgsmyxgs.com/api/"+t),
+          method: "post",
+          data:JSON.stringify(data),
           headers: {
             'Content-Type': 'application/json'
           }
         })
         .then(res => {
           Toast.clear();
-          reject(res.data)
+          resolve(res.data)
 
         })
         .catch(res => {
@@ -46,46 +48,24 @@ const http={
         })
     })
   },
-  pay(data = {}, method = 'post') {
-    return new Promise((resolve, reject) => {
-      axios({
-          url: encodeURI("https://m.anxihtx.com/wineshop/api/service?json=" + JSON.stringify(data)),
-          method: method,
-          headers: {
-            'Content-Type': 'application/json'
-          }
-        })
-        .then(res => {
-          //成功
-          Toast.clear();
-          reject(res.data)
-        })
-        .catch(res => {
-          //失败
-          // reject(res)
-          Toast('网络不稳定!请稍后重试!')
-
-        })
-    })
-  },
-  upfile(data, method = 'post'){
+  upfile(data={}, method = 'post'){
     Toast.loading({
       message: '上传中...',
       mask:false
     });
     return new Promise((resolve, reject) => {
       axios({
-          url: encodeURI('http://192.168.3.2:8080/api//uploadFile'),
+          url: encodeURI('http://m.hnsgsmyxgs.com/api/uploadFile'),
           method: method,
           data:data,
           headers: {
-            "Content-Type": "multipart/form-data"
+            "Content-Type": 'application/json'
           }
         })
         .then(res => {
           //成功
           Toast.clear();
-         reject(res.data)
+          resolve(res.data)
         })
         .catch(res => {
           //失败

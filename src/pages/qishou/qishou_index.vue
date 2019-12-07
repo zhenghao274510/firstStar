@@ -4,8 +4,8 @@
       <h4 class="index_title">首页</h4>
       <div class="useInfo" @click.stop="change">
         <div class="usePic">
-          <img src="@/assets/img/morentouxiang@2x.png" alt v-if="icon==''" />
-          <img :src="use.icon" alt v-else />
+          <img :src="use.icon" v-if="use.icon!=''" alt />
+          <img src="@/assets/img/morentouxiang@2x.png" v-else alt />
         </div>
         <div class="use_title">
           <h3>{{use.nickname}}</h3>
@@ -37,18 +37,18 @@
     <div class="shao_cont">
       <div @click.stop="sys_click">
         <img src="@/assets/img/shangjia_saoyisao@3x.png" alt />
-        <p>扫一扫支付</p>
+        <p>扫码支付</p>
       </div>
     </div>
     <div v-show="show" @click.stop="show=false" class="puop_swipe">
       <div class="puop_con">
         <div class="puop_top">
           <p class="one">联系客服</p>
-          <p class="two"> {{use.customer}}</p>
+          <p class="two">{{use.customer}}</p>
         </div>
         <div class="puop_btn">
           <span class="puop_can" @click.stop="show=false">取消</span>
-          <a :href="'tel://'+use.customer" class="puop_confirm">一键拨打</a>
+          <a :href="'tel:/'+use.customer" class="puop_confirm">一键拨打</a>
         </div>
       </div>
     </div>
@@ -57,12 +57,13 @@
 
 <script>
 //import 《组件名称》 from '《组件路径》';
+import wx from "weixin-js-sdk";
 export default {
   data() {
     return {
       show: false,
-      uid:'',
-      use:{}
+      uid: "",
+      use: {}
     };
   },
   //监听属性 类似于data概念
@@ -73,20 +74,23 @@ export default {
   components: {},
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
-    this.uid=JSON.parse(localStorage.getItem("qishouInfo")).uid;
-      this.loadData()
+    this.uid = JSON.parse(localStorage.getItem("qishouInfo")).uid;
+    this.loadData();
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
   //方法集合
   methods: {
-    loadData(){
-      this.$api.post({uid:this.uid},'userInfo').then(res=>{
-          if(res.result==0){
-              this.use=res;
-              localStorage.setItem('qishouBalance',res.balance)
+    loadData() {
+      this.$api
+        .post({ uid: this.uid }, "userInfo")
+        .then(res => {
+          if (res.result == 0) {
+            this.use = res;
+            localStorage.setItem("qishouBalance", res.balance);
           }
-      }).catch(err=>{})
+        })
+        .catch(err => {});
     },
     gotoall(num) {
       switch (num) {
@@ -94,10 +98,10 @@ export default {
           this.$router.push("/qishou_money");
           break;
         case 2:
-          this.$router.push("/shoplist");
+          this.$router.push({ path: "/shoplist", query: { uid: this.uid } });
           break;
         case 3:
-         this.$router.push({path:"/yijian",query:{id:1}});
+          this.$router.push({ path: "/yijian", query: { id: 1 } });
           break;
         case 4:
           this.show = true;
@@ -106,10 +110,13 @@ export default {
     },
     sys_click() {
       let url = location.href.split("#")[0];
-      this.$api.post(url,'auth').then(res => {
-         if(res.result==0){
-           this.$scode(res);
-         }
+      // this.$toast(url)
+      this.$api.post({ url: url }, "auth").then(res => {
+        if (res.result == 0) {
+          this.Scrode(res, this.uid);
+        } else {
+          this.$toast(res.resultNote);
+        }
       });
     },
     change() {
@@ -119,8 +126,46 @@ export default {
           id: 1
         }
       });
+    },
+    Scrode(data, uid) {
+      wx.config({
+        // 开启调试模式,调用的所有api的返回值会在客户端alert出来，若要查看传入的参数，可以在pc端打开，参数信息会通过log打出，仅在pc端时才会打印。
+        debug: false,
+        // 必填，公众号的唯一标识
+        appId: data.appId,
+        // 必填，生成签名的时间戳
+        timestamp: data.timestamp,
+        // 必填，生成签名的随机串
+        nonceStr: data.noncestr,
+        // 必填，签名
+        signature: data.signature,
+        // 必填，需要使用的JS接口列表，所有JS接口列表
+        jsApiList: ["checkJsApi", "scanQRCode"]
+      });
+      const that = this;
+      wx.ready(() => {
+        wx.scanQRCode({
+          needResult: 1, // 默认为0，扫描结果由微信处理，1则直接返回扫描结果，
+          scanType: ["qrCode", "barCode"], // 可以指定扫二维码还是一维码，默认二者都有
+          success(r) {
+            let arr = eval("(" + r.resultStr + ")");
+            that.$router.push({
+              path: "/pay",
+              query: {
+                nickname: arr.nickname,
+                shopId: arr.shopId,
+                uid: uid
+              }
+            });
+          },
+          fail: function(res) {
+            // alert("扫码出错了2：" + res.errMsg);
+            Toast("扫码出错了!" + res.errMsg);
+          },
+          complete: function(res) {}
+        });
+      });
     }
-   
   },
   //生命周期 - 创建之前
   beforeCreate() {},
@@ -178,11 +223,11 @@ export default {
       line-height: 0.35rem;
       text-align: center;
     }
-    .one{
+    .one {
       font-weight: bold;
       color: #333333;
     }
-    .two{
+    .two {
       color: #666;
     }
   }
@@ -256,7 +301,13 @@ export default {
     width: 0.7rem;
     height: 0.7rem;
     border-radius: 50%;
+    img {
+      width: 0.7rem;
+      height: 0.7rem;
+      border-radius: 50%;
+    }
   }
+
   .right {
     width: 0.1rem;
     height: 0.2rem;

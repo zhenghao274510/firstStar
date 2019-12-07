@@ -14,7 +14,7 @@
         color="#0081FF"
         title-active-color="#0081FF"
         sticky
-        :offset-top="60"
+        :offset-top="50"
         swipeable
         animated
         :duration="0.5"
@@ -25,9 +25,9 @@
           <van-list
             v-model="loading"
             :finished="finished"
-            finished-text="没有更多了"
+            :finished-text="finishedTxt"
             @load="onLoad"
-            :offset="10"
+            immediate-check="false"
           >
             <ul class="cont_list">
               <li class="list_swipe" v-for="(item,index) in dataList" :key="index">
@@ -37,35 +37,12 @@
                 <ul>
                   <li>
                     <div class="list_top">
-                      <span v-if="active==0">{{item.title}}</span>
-                      <span v-else>{{item.title}}-账户充值</span>
+                      <span>{{item.title}}</span>
+                      <!-- <span v-else>{{item.title}}-账户充值</span> -->
                       <span v-if="active==0">-{{item.amount}}</span>
                       <span style="color:#0081FF" v-else>+{{item.amount}}</span>
                     </div>
-                    <p v-if="active==0">备注：{{item.remarks}}</p>
-                  </li>
-                  <li>
-                    <div class="list_top">
-                      <span v-if="active==0">4564564564564</span>
-                      <span v-else>账户充值</span>
-                      <span>154564</span>
-                    </div>
-                    <p v-if="active==0">45645645645</p>
-                  </li>
-                </ul>
-              </li>
-              <li class="list_swipe">
-                <div class="list_title">
-                  <p>时间</p>
-                </div>
-                <ul>
-                  <li>
-                    <div class="list_top">
-                      <span v-if="active==0">4564564564564</span>
-                      <span v-else>账户充值</span>
-                      <span>154564</span>
-                    </div>
-                    <p v-if="active==0">45645645645</p>
+                    <p v-if="item.remarks!=''">备注：{{item.remarks}}</p>
                   </li>
                 </ul>
               </li>
@@ -91,11 +68,12 @@ export default {
       init: false,
       uid: "",
       totalPage: 1,
-      page: 0,
+      page: 1,
       dataList: [],
       money: "",
       finishedTxt: "",
-      balance:''
+      balance:'',
+      uid:''
     };
   },
   //监听属性 类似于data概念
@@ -109,9 +87,9 @@ export default {
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
     let qishouInfo = localStorage.getItem("qishouInfo");
-    this.cid = JSON.parse(qishouInfo).cid;
+    this.uid = JSON.parse(qishouInfo).uid;
     this.balance=localStorage.getItem('qishouBalance')
-    // this.loadData(this.page, this.active);
+    this.loadData(this.page, this.active);
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
@@ -137,16 +115,7 @@ export default {
                   })
                 : ((this.finished = true),
                   (this.finishedTxt = "暂无相关数据")))
-            : this.$toast("请求失败!请稍后重试!");
-          // if (res.dataList != undefined |&& res.dataList.length != 0) {
-          //   res.dataList.forEach(item => {
-          //     this.dataList.push(item);
-          //   });
-          // }else{
-          //   this.finished=true;
-          //   this.finishedTxt="暂无相关数据"
-          // }
-          // }
+            : this.$toast(res.resultNote);
         })
         .catch(err => {});
     },
@@ -164,16 +133,6 @@ export default {
             this.finished = true;
             this.finishedTxt = "没有更多了";
           }, 1000);
-      // if (this.page < this.totalPage) {
-      //   this.page++;
-      //   this.loadData(this.page, this.active);
-      // } else {
-      //   setTimeout(() => {
-      //     this.loading = false;
-      //     this.finished = true;
-      //     this.finishedTxt = "没有更多了";
-      //   }, 1000);
-      // }
     },
     initData() {
       this.page = 1;

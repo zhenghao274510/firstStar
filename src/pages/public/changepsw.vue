@@ -42,7 +42,7 @@ export default {
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
       this.type=this.$route.query.id;
-      this.uid= JSON.parse(localStorage.getItem("use")).uid;  
+      this.type==1? this.uid= JSON.parse(localStorage.getItem("qishouInfo")).uid: this.uid= JSON.parse(localStorage.getItem("shopInfo")).uid;  
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {
@@ -62,18 +62,17 @@ export default {
         else {
           let parmas = {
             uid:this.uid,
-            oldPassword: this.oldpwd,
-            newPassword: this.newpwd,
+            oldPassword:hex_md5(this.oldpwd) ,
+            newPassword: hex_md5(this.newpwd),
           };
-          this.$api.post(parmas,'userLogin').then(res => {
-            this.$toast(res.resultNote);
+          this.$api.post(parmas,'editPassword').then(res => {
+            
             if (res.result == 0) {
               setTimeout(() => {
                 this.$router.back(-1);
-              },1000);
-            }else{
-              this.$toast(res.resultNote);
+              },500);
             }
+            this.$toast(res.resultNote);
           });
         }
       

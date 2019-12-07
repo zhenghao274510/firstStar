@@ -14,7 +14,7 @@
         <li>
           <p>备注</p>
           <div>
-            <input type="text" placeholder="请输入备注信息(选填)"  v-model="remarks"/>
+            <input type="text" placeholder="请输入备注信息(选填)" v-model="remarks" />
           </div>
         </li>
       </ul>
@@ -27,16 +27,16 @@
 <script>
 //import 《组件名称》 from '《组件路径》';
 import pageHeade from "./../components/header";
-import wxPay from "@/assets/js/pay.js"
+import {Toast} from "vant"
 export default {
   data() {
     return {
-      name:'',
+      name: "",
       text: "扫码支付",
-      amount:"",
-      remarks:"",
-      shopId:'',
-      uid:''
+      amount: "",
+      remarks: "",
+      shopId: "",
+      uid: ""
     };
   },
   //监听属性 类似于data概念
@@ -49,34 +49,29 @@ export default {
   },
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
-    this.name=this.$route.query.id;
-    this.shopId=this.$route.query.shopId;
-     this.direct == 1
-      ? (this.uid = JSON.parse(localStorage.getItem("qishouInfo")).uid)
-      : (this.uid = JSON.parse(localStorage.getItem("shopInfo")).uid);
+    this.name = this.$route.query.nickname;
+    this.shopId = this.$route.query.shopId;
+    this.uid = this.$route.query.uid;
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
-  mounted() {
-    // let num = this.height;
-    // window.onresize = () => {
-    //   document.getElementsByTagName("html")[0].style.height = num;
-    // };
-  },
+  mounted() {},
   //方法集合
   methods: {
-    payMoney(){
-      let parmas={
-            shopId:this.shopId,
-            amount:this.amount,
-            remarks:this.remarks,
-            uid:this.uid
-      }
-      this.$api.post(parmas,'pay').then(res=>{
-             if(res.result==0){
-               wxPay.pay(res)
-             }
-      })
+    payMoney() {
+      let parmas = {
+        shopId: this.shopId,
+        amount: this.amount,
+        remarks: this.remarks,
+        uid: this.uid
+      };
+      this.$api.postLoading(parmas, "pay").then(res => {
+        Toast(res.resultNote);
+        if (res.result == 0) {
+        this.$router.back();
+        } 
+      });
     }
+
   },
   //生命周期 - 创建之前
   beforeCreate() {},
@@ -102,7 +97,7 @@ export default {
     display: flex;
     width: 100%;
     flex-direction: column;
-    padding: 0 0.3rem;
+    padding: 0.5rem 0.3rem 0 0.3rem;
     h4 {
       line-height: 0.35rem;
     }

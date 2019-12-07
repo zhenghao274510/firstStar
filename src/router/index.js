@@ -5,7 +5,7 @@ Vue.use(Router)
 export default new Router({
   routes:[{
     path: '/',
-    redirect:'/pay'
+    redirect:'/author'
   },
     {
       path: '/resgin',
@@ -50,6 +50,7 @@ export default new Router({
     {
       path: '/shoplist',
       component: resolve => require(['@/pages/public/shoplist.vue'], resolve)
-    },
+    }
+
   ]
 })

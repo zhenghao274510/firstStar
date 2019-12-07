@@ -1,7 +1,7 @@
 
 <template>
   <div class="content">
-    <page-heade :title="text"></page-heade>
+    <h4 class="index_title">{{text}}</h4>
     <div class="box">
       <div class="img_box">
         <img src="@/assets/img/LOGO@2x.png" alt class="logo" />
@@ -25,28 +25,32 @@
         </div>
       </ul>
       <div style="margin-top:.15rem;">用户名和密码请联系客服索取</div>
-      <a class="download" :href="'tell://'+phone">
+
+      <div class="download">
+        <a class="pos" :href="'tel://'+phone"></a>
         <img src="@/assets/img/dibu_bohao@2x.png" alt />
         <span>{{phone}}</span>
-      </a>
+      </div>
     </div>
   </div>
 </template>
 <script>
 //import 《组件名称》 from '《组件路径》';
 // import Request from "@/common/request"
-import pageHeade from "./../components/header";
+import Request from "@/assets/js/request.js";
+import wx from "weixin-js-sdk";
 export default {
   data() {
     return {
-      text: "骑手端",
+      text: "",
       account: "",
       // 用户密码
       password: "",
       pid: "",
       openid: "",
       uid: "",
-      type: 0 // 0   骑手   1  商家
+      phone: "",
+      type: 1 // 1  骑手   2  商家
     };
   },
   //监听属性 类似于data概念
@@ -55,29 +59,26 @@ export default {
   watch: {},
   //import引入的组件需要注入到对象中才能使用
   components: {
-    pageHeade
   },
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
     this.type = this.$route.query.id;
     this.openid = this.$route.query.openid;
     this.type == 1 ? (this.text = "骑手端") : (this.text = "商家端");
-    // if (this.type == 0) {
-    //   this.text = "骑手端";
-    // } else {
-    //   this.text = "商家端";
-    // }
+    this.gettell();
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
-  mounted() {},
+  mounted() {
+  },
   //方法集合
   methods: {
-    gettell(){
-        this.$api.post('customer').then(res=>{
-           if(res.result==0){
-             this.phone=res.phone;
-           }
-        })
+    gettell() {
+      this.$api.post({type:this.type}, "customer").then(res => {
+        if (res.result == 0) {
+          this.phone = res.phone;
+          localStorage.setItem("phone", res.phone);
+        }
+      });
     },
     sub() {
       this.usepsd == "" ? this.$toast("请输入密码!") : this.loadData();
@@ -90,7 +91,7 @@ export default {
       } else {
         let parmas = {
           account: this.account,
-          password: this.password,
+          password: hex_md5(this.password),
           openid: this.openid,
           type: this.type
         };
@@ -99,7 +100,7 @@ export default {
           .then(res => {
             res.result == 0
               ? ((this.uid = res.uid), this.success())
-              : Toast(res.resultNode);
+              : this.$toast(res.resultNote);
           })
           .catch(err => {
             console.log(err);
@@ -107,7 +108,7 @@ export default {
       }
     },
     success() {
-      Toast("登录成功!");
+      this.$toast("登录成功!");
       this.type == 1 ? this.qishouIndex() : this.shopIndex();
     },
     shopIndex() {
@@ -148,6 +149,12 @@ export default {
 };
 </script>
 <style scoped lang='less' rel='stylesheet/stylus'>
+.index_title {
+    line-height: 0.35rem;
+    font-size: 0.18rem;
+    text-align: center;
+    background: #fff;
+  }
 .content {
   width: 100%;
   display: flex;
@@ -157,14 +164,14 @@ export default {
 }
 .box {
   width: 100%;
-  padding: 0.5rem 0;
+  padding: 0.3rem 0;
   display: flex;
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
   position: relative;
   .img_box {
-    margin: 0.5rem 0;
+    margin-bottom:0.3rem;
     display: flex;
     flex-direction: column;
     .logo {
@@ -229,6 +236,8 @@ export default {
   }
   .download {
     margin-top: 0.3rem;
+    position: relative;
+    z-index: 1;
     img {
       width: 0.18rem;
       height: 0.18rem;
@@ -237,6 +246,14 @@ export default {
     span {
       color: #0081ff;
       margin-left: 0.1rem;
+    }
+    .pos {
+      position: absolute;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      right: 0;
+      z-index: 99;
     }
   }
 }

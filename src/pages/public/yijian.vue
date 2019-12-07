@@ -18,7 +18,7 @@ export default {
       content: "",
       phone: "",
       uid: "",
-      direct: 0
+      direct: 1
     };
   },
   //监听属性 类似于data概念
@@ -45,11 +45,10 @@ export default {
     },
     fink() {
       let parmas = {
-        cmd: "feedBack",
         uid: this.uid,
         content: this.content
       };
-      this.$api.post(parmas).then(res => {
+      this.$api.post(parmas,"feedback").then(res => {
         res.result == 0
           ? (this.$toast("提交成功！感谢您的反馈"),
             (this.content = ""),
