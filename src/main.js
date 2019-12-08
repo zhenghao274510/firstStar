@@ -22,6 +22,7 @@ Vue.config.productionTip = false
 require('es6-promise').polyfill()
 Es6Promise.polyfill()
 Vue.filter('Admin', function (val) { 
+	val=val+"";
   return `${val.slice(0, 3)}****${val.slice(-4)}`
 })
 new Vue({

@@ -10,7 +10,7 @@
       :finished="finished"
       :finished-text="finishedTxt"
       @load="onLoad"
-      immediate-check="false"
+      :immediate-check="init"
     >
       <ul>
         <li class="useInfo" v-for="(item, index) in dataList" :key="index">
@@ -47,6 +47,7 @@ import pageHeade from "./../components/header";
 export default {
   data() {
     return {
+      init:false,
       text: "商家列表",
       value: "",
       loading: false,
@@ -131,6 +132,17 @@ export default {
     getphone(e) {
       this.phone = e.phone;
       this.show = true;
+    }
+  },
+  watch: {
+    value(newv, oldv) {
+      if (newv == "") {
+        this.dataList = [];
+        this.page=1;
+        setTimeout(() => {
+          this.loadData();
+        }, 500);
+      }
     }
   },
   //生命周期 - 创建之前

@@ -50,12 +50,9 @@
         </van-tabbar>
       </div>
       <div class="con_bottom">
-        <div class="qrcode_con">
-          <div id="qrcode" class="qrcode"></div>
-          <img src alt id="img" />
-        </div>
-
-        <p>长按保存收款码</p>
+        <div id="qrcode" class="qrcode" style="display:none"></div>
+        <div class="qrcode" id="imgcon"></div>
+        <p class="shou">长按保存收款码</p>
       </div>
       <a class="end" :href="'tel://'+use.customer">
         <img src="@/assets/img/dibu_bohao@2x.png" alt />
@@ -69,7 +66,7 @@
 //import 《组件名称》 from '《组件路径》';
 import QRCode from "qrcodejs2";
 import wx from "weixin-js-sdk";
-import html2canvas from "html2canvas";
+
 export default {
   data() {
     return {
@@ -88,25 +85,26 @@ export default {
   //生命周期 - 创建完成（可以访问当前this实例）
   created() {
     this.uid = JSON.parse(localStorage.getItem("shopInfo")).uid;
-    this.loadData();
+    // this.uid="a1e3cc23a6604c1fbd1a60a6bfa63e3c"
+    this.loadData(this.uid);
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
   //方法集合
   methods: {
-    loadData() {
+    loadData(uid) {
       this.$api
-        .post({ uid: this.uid }, "userInfo")
+        .post({ uid:uid}, "userInfo")
         .then(res => {
+          console.log(res)
           if (res.result == 0) {
+            
             this.use = res;
             let info = JSON.stringify({
               nickname: res.nickname,
-              shopId: this.uid
+              shopId:uid
             });
-            this.$nextTick(() => {
-              this.creatQrcode(info);
-            });
+            this.creatQrcode(info);
             localStorage.setItem("shopBalance", res.balance);
           }
         })
@@ -118,15 +116,16 @@ export default {
         width: 110,
         height: 110
       });
-      setTimeout(() => {
-        html2canvas(document.querySelector(".qrcode"), {
-          useCORS: true,
-          foreignObjectRendering: true
-        }).then(canvas => {
-          let dataurl = canvas.toDataURL("image/png");
-          document.getElementById("img").src = dataurl;
-        });
-      }, 1000);
+        let canvas = document.getElementsByTagName("canvas")[0];
+        console.log(canvas);
+        let img = this.getimg(canvas);
+        document.getElementById("imgcon").append(img);
+    },
+    getimg(canvas) {
+      var image = new Image();
+      // canvas.toDataURL 返回的是一串Base64编码的URL
+      image.src = canvas.toDataURL("image/png");
+      return image;
     },
     gotoall(num) {
       switch (num) {
@@ -200,9 +199,7 @@ export default {
           complete: function(res) {}
         });
       });
-    },
-    touchstart(e) {},
-    touchend(e) {}
+    }
   },
   //生命周期 - 创建之前
   beforeCreate() {},
@@ -275,51 +272,41 @@ export default {
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      margin-top: 0.6rem;
+      margin-top: 0.2rem;
       position: relative;
-      .qrcode_con {
+      .qrcode {
         width: 1.05rem;
         height: 1.05rem;
-        position: relative;
-        .qrcode {
-          width: 1.05rem;
-          height: 1.05rem;
-          z-index: 1;
-          position: absolute;
-          top: 0;
-          left: 0;
-        }
-        #img {
-          width: 1.05rem;
-          height: 1.05rem;
-          z-index: 999;
-          position: absolute;
-          top: 0;
-          left: 0;
-        }
+        z-index: 1;
       }
-
-      p {
-        text-align: center;
-        margin-top: 0.26rem;
+      #img {
+        width: 1.05rem;
+        height: 1.05rem;
+        z-index: 999;
       }
     }
-    .end {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin-top: 0.5rem;
-      img {
-        width: 0.18rem;
-        height: 0.18rem;
-      }
-      p {
-        color: #0081ff;
-        margin-left: 0.1rem;
-      }
+
+    .shou {
+      text-align: center;
+      margin-top: 0.26rem;
+    }
+  }
+  .end {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 0.5rem;
+    img {
+      width: 0.18rem;
+      height: 0.18rem;
+    }
+    p {
+      color: #0081ff;
+      margin-left: 0.1rem;
     }
   }
 }
+
 .box {
   width: 100%;
   background: #fafafa;

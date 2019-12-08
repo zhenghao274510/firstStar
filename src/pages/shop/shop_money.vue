@@ -26,7 +26,7 @@
             :finished="finished"
             :finished-text="finishedTxt"
             @load="onLoad"
-            immediate-check="false"
+            :immediate-check="init"
           >
             <ul class="cont_list">
               <li class="list_swipe" v-for="(item,index) in dataList" :key="index">
@@ -58,19 +58,19 @@ import pageHead from "./../components/header";
 export default {
   data() {
     return {
+      init: false,
       text: "我的余额",
       tab: ["支出记录", "收入记录"],
       loading: false,
       active: 0,
       finished: false,
-      // init: false,
       page: 1,
       totalPage: 1,
       dataList: [],
       finishedTxt: "",
-      isLoading: false,
       uid: "",
-      balance: ""
+      balance: "",
+      timer:null
     };
   },
   //监听属性 类似于data概念
@@ -86,24 +86,32 @@ export default {
     let shopInfo = localStorage.getItem("shopInfo");
     this.uid = JSON.parse(shopInfo).uid;
     this.balance = localStorage.getItem("shopBalance");
-    this.loadData(this.page,this.active);
+    // this.uid = "a1e3cc23a6604c1fbd1a60a6bfa63e3c";
+    this.loadData(this.page, this.active);
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
   mounted() {},
   //方法集合
   methods: {
     onLoad() {
-      this.loading = true;
-      if (this.page < this.totalPage) {
-        this.page++;
-        this.loadData(this.page, this.active);
-      } else {
-        setTimeout(() => {
-          this.loading = false;
-          this.finished = true;
-          this.finishedTxt = "没有更多了";
+      if (!this.timer) {
+         console.log("loading");
+        this.timer = setTimeout(() => {
+          this.loading = true;
+          if (this.page < this.totalPage) {
+            this.page++;
+            this.loadData(this.page, this.active);
+          } else {
+            setTimeout(() => {
+              this.loading = false;
+              this.finished = true;
+              this.finishedTxt = "没有更多了";
+            }, 1000);
+          }
+          this.timer = null;
         }, 1000);
       }
+     
     },
     loadData(p, a) {
       let parmas = {
@@ -115,7 +123,7 @@ export default {
       this.$api
         .post(parmas, "balanceLog")
         .then(res => {
-          // this.loading == true ? (this.loading = false) : (this.loading = true);
+          console.log(res);
           this.loading = false;
           res.result == 0
             ? ((this.totalPage = res.totalPage),
@@ -133,11 +141,10 @@ export default {
       this.initData();
     },
     initData() {
-      this.page = 1;
+      this.page = 0;
       this.totalPage = 1;
       this.dataList = [];
       this.finished = false;
-      this.loadData(this.page, this.active);
     }
   },
   //生命周期 - 创建之前

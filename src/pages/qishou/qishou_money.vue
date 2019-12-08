@@ -27,7 +27,7 @@
             :finished="finished"
             :finished-text="finishedTxt"
             @load="onLoad"
-            immediate-check="false"
+            :immediate-check="init"
           >
             <ul class="cont_list">
               <li class="list_swipe" v-for="(item,index) in dataList" :key="index">
@@ -60,6 +60,7 @@ import pageHead from "./../components/header";
 export default {
   data() {
     return {
+      init: false,
       text: "我的余额",
       tab: ["消费记录", "充值记录"],
       loading: false,
@@ -72,8 +73,9 @@ export default {
       dataList: [],
       money: "",
       finishedTxt: "",
-      balance:'',
-      uid:''
+      balance: "",
+      uid: "",
+      timer: null
     };
   },
   //监听属性 类似于data概念
@@ -88,7 +90,7 @@ export default {
   created() {
     let qishouInfo = localStorage.getItem("qishouInfo");
     this.uid = JSON.parse(qishouInfo).uid;
-    this.balance=localStorage.getItem('qishouBalance')
+    this.balance = localStorage.getItem("qishouBalance");
     this.loadData(this.page, this.active);
   },
   //生命周期 - 挂载完成（可以访问DOM元素）
@@ -113,8 +115,7 @@ export default {
                 ? res.dataList.forEach(item => {
                     this.dataList.push(item);
                   })
-                : ((this.finished = true),
-                  (this.finishedTxt = "暂无相关数据")))
+                : ((this.finished = true), (this.finishedTxt = "暂无相关数据")))
             : this.$toast(res.resultNote);
         })
         .catch(err => {});
@@ -125,21 +126,24 @@ export default {
       this.initData();
     },
     onLoad() {
-      this.loading = true;
-      this.page < this.totalPage
-        ? (this.page++, this.loadData(this.page, this.active))
-        : setTimeout(() => {
-            this.loading = false;
-            this.finished = true;
-            this.finishedTxt = "没有更多了";
-          }, 1000);
+      if (!this.timer) {
+        this.timer = setTimeout(() => {
+          this.loading = true;
+          this.page < this.totalPage
+            ? (this.page++, this.loadData(this.page, this.active))
+            : setTimeout(() => {
+                this.loading = false;
+                this.finished = true;
+                this.finishedTxt = "没有更多了";
+              }, 1000);
+        },1000);
+      }
     },
     initData() {
-      this.page = 1;
+      this.page =0;
       this.totalPage = 1;
       this.finished = false;
       this.dataList = [];
-      this.loadData(this.page, this.active);
     }
   },
   //生命周期 - 创建之前
