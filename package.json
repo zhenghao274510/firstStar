@@ -17,7 +17,7 @@
     "js-md5": "^0.7.3",
     "less": "^3.10.3",
     "less-loader": "^5.0.0",
-    "mavon-editor": "^2.6.17",
+    "mavon-editor": "^2.8.2",
     "qrcodejs2": "^0.0.2",
     "simditor": "^2.3.23",
     "simple-module": "^3.0.3",
